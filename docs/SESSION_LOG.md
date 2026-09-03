@@ -27,8 +27,15 @@
 - 테스트: `uv run pytest -q tests` (18개, 약 2분).
 - `runs/` 는 git 제외(약 700 MB). 다른 컴퓨터에서는 Phase 0 스크립트로 `runs/phase0/c302_C2_LW_Full_avb-ava/` 를 재생성해야 모든 실험이 돈다. 번역기 가중치(`runs/phase4/translator.pt`)는 재학습 1분.
 
+## 3b. 2026-09-03 (두 번째 Mac 세션): Phase 1d 시작 — 억제 재현과 감각→명령 선택
+- 구조 분석: 아틀라스 억제 쌍 150개 중 커넥톰 시냅스 경로가 있는 것은 26개뿐(직접 억제 3개). 핵심 명령 경로(AVD→AVA, PVC→AVB, AVM→AVB)는 CeNGEN 극성이 "상충"이라 V1-split 이 절반을 억제로 쪼갬. → `RESULTS_PHASE1.md` 7.1
+- θ8(억제 동작점 분리) 13개 탐색: 억제 재현율은 기저율만큼만 오르고 예측력 하락. 부정 결과 → 7.2
+- ADR-015: 연결 클래스별 파라미터 θ63 (세포 유형 S/I/M 쌍 × 부호). `connection_classes`, `apply_theta_class`, NeuroML 세포 유형 파싱(`Network.ntype`), `phase1d_fit.py`, `phase1d_inh_scan.py`, `--theta_class` 옵션(phase1b_sigprop, phase1_circuits, Worm).
+- fit_E → fit_F: Chalfie 회로 방향 달성(PLM +2.3, ALM +2.4 mV) + 학습 Pearson 0.132 회복. **검증 세트 평가와 신체 결합 검증은 미완** → 7.3 의 "남은 검증" 1–6.
+- 산출물은 `runs/phase1d/` (git 제외). 다른 컴퓨터로 옮길 때 `runs/` 전체를 복사할 것.
+
 ## 4. 미해결 과제 (우선순위)
-1. 억제 재현과 감각→명령 선택: 시냅스 클래스별 파라미터 적합 (Phase 1c 확장).
+1. 억제 재현과 감각→명령 선택: 클래스별 적합 fit_F 의 검증·채택·신체 결합 (RESULTS_PHASE1 7.3 의 남은 검증 1–6). 억제 자체는 커넥톰 경로 부재로 상한이 낮음(7.1) — 부정 결과로 정리.
 2. 유턴·춤의 회전 강화, 회전 시 파동 주파수 상승(1 Hz) 조정.
 3. 실행 로그 저장/재생, B-2(시뮬레이터 루프 미세조정, 무경사).
 4. 논문 초고 (`docs/PAPER_OUTLINE.md`).
@@ -36,4 +43,5 @@
 ## 5. 다른 컴퓨터에서 이어가기
 - macOS Intel: README 의 우회(JAX 0.4.38, nrnivmodl CXX, openjdk@21) 필요. Apple Silicon/Linux: JAX·torch 최신으로 올려도 됨(pyproject 의 고정 해제).
 - 2026-09-03 두 번째 Intel Mac 으로 이전: `runs/` 복사본으로 Phase 0 재생성 없이 테스트 18개·웹 UI 정상. uv 0.4.24 → 0.12.9 업그레이드, `requires-python <3.13` 추가(uv.lock 갱신). brew openjdk@21 은 이 기기에서 권한 오류로 미설치 — Phase 0 재실행 시에만 필요.
+- Linux(Ubuntu): `uv sync` 만으로 될 가능성이 높다 (JAX·torch 고정은 Intel Mac 용; 필요하면 pyproject 의 `jax==0.4.38`, `torch==2.2.2` 고정을 풀고 `uv lock`). Phase 0 재실행이 필요하면 openjdk 21 + `nrnivmodl` (README). `runs/`(약 650 MB, phase1d 포함)를 함께 복사하면 재생성 불필요.
 - Claude Code 로 이어갈 때: 이 폴더의 `CLAUDE.md` 가 자동으로 읽힌다. 대화 원본을 다시 보려면 `history/*.jsonl`.

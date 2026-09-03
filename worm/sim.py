@@ -6,7 +6,7 @@
 from __future__ import annotations
 import re, numpy as np, jax.numpy as jnp
 from .neural.connectome import load_network, Network
-from .neural.variants import make_variant, apply_theta
+from .neural.variants import make_variant, apply_theta, apply_theta_class
 from .neural import jaxsim
 from .body.rod2d import Rod2D
 from .body.muscle_map import muscle_rows, activation_from_ca, preferred_curvature
@@ -18,7 +18,7 @@ class Worm:
                  motor="c302", boyle_kw=None, gate_thresh=3.0, gate_slope=1.0):
         """motor: "c302" (근육 세포 Ca → 곡률) 또는 "boyle" (Vfit 의 AVB/AVA 전압으로 Boyle 2012 운동층을 게이트)."""
         net = load_network(nml); net.pulses = np.zeros((0, 4)); net, self.vinfo = make_variant(net, variant)
-        if theta is not None: net = apply_theta(net, theta)
+        if theta is not None: net = apply_theta_class(net, theta) if len(theta) > 8 else apply_theta(net, theta)   # θ6/θ8 전역 또는 θ63 클래스별 (ADR-015)
         self.net: Network = net; self.neural = jaxsim.WormSim(net, dt=dt_neural, dtype=dtype)
         self.body = Rod2D(Cn=Cn); self.x = self.body.initial(); self.block_ms = block_ms   # dt 10 µs (20 µs 는 굽힘 항 때문에 발산)
         self.D_rows, self.V_rows = muscle_rows(net.names); self.K_half, self.kappa_max = K_half, kappa_max

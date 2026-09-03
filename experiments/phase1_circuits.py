@@ -15,11 +15,14 @@ from worm.neural import jaxsim
 ap = argparse.ArgumentParser()
 ap.add_argument("nml"); ap.add_argument("--dt", type=float, default=0.05); ap.add_argument("--dur", type=float, default=2000)
 ap.add_argument("--amp", type=float, default=10.0); ap.add_argument("--out", default=None); ap.add_argument("--tag", default="")
-ap.add_argument("--variant", default="V0")
+ap.add_argument("--variant", default="V0"); ap.add_argument("--theta_class", default=None, help="phase1d log.json: 클래스별 θ63 적용")
 a = ap.parse_args()
 
 from worm.neural.variants import make_variant
 net0 = load_network(a.nml); net0.pulses = np.zeros((0, 4)); net0, vinfo = make_variant(net0, a.variant); print("variant:", vinfo.get("variant"))
+if a.theta_class:
+    import json; from worm.neural.variants import apply_theta_class
+    net0 = apply_theta_class(net0, json.load(open(a.theta_class))[-1]["theta"]); a.variant += "_" + os.path.basename(os.path.dirname(a.theta_class))
 a.tag = f"{a.tag}_{a.variant}"
 GROUPS = {"AVA": r"AVA[LR]", "AVB": r"AVB[LR]", "AVD": r"AVD[LR]", "AVE": r"AVE[LR]", "PVC": r"PVC[LR]",
           "A-type(DA,VA)": r"[DV]A\d+", "B-type(DB,VB)": r"[DV]B\d+", "D-type(DD,VD)": r"[DV]D\d+", "AS": r"AS\d+",

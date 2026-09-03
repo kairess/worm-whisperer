@@ -67,6 +67,9 @@ def build_params(net: Network, dtype=jnp.float64) -> Params:
     ls = getattr(net, "leak_scale", 1.0)
     if ls != 1.0:
         per["gL"] = np.where(net.is_muscle(), per["gL"], per["gL"] * ls)
+    lsc = getattr(net, "leak_scale_cell", None)          # (N,) 세포별 누설 배율 (Phase 1d 클래스 θ; 이미 leak_scale 을 포함)
+    if lsc is not None:
+        per["gL"] = np.where(net.is_muscle(), per["gL"], per["gL"] / (ls if ls != 1.0 else 1.0) * np.asarray(lsc))
     A = lambda x: jnp.asarray(x, dtype)
     pulses = net.pulses
     # 패딩된 인접 리스트 (scatter 대신 gather+sum: XLA CPU에서 훨씬 빠름)

@@ -79,6 +79,7 @@ class Network:
     # 펄스 전류 입력: (cell, delay_ms, dur_ms, amp_pA)
     pulses: np.ndarray
     dt_ms: float | None = None; duration_ms: float | None = None
+    ntype: list[str] | None = None   # 세포 유형 "sensory" | "interneuron" | "motor" | "muscle" (NeuroML property "type"; 복수면 sensory > motor > interneuron)
 
     @property
     def n(self): return len(self.names)
@@ -154,10 +155,12 @@ def load_network(nml_path: str) -> Network:
                   for el in root.findall("n:pulseGenerator", NS)}
 
     net = root.find("n:network", NS)
-    names, ctype = [], []
+    names, ctype, ntype = [], [], []
     for pop in net.findall("n:population", NS):
         assert pop.get("size") == "1"
         names.append(pop.get("id")); ctype.append(type_index[pop.get("component")])
+        tv = {t.strip() for p in pop.iter(f"{{{NS['n']}}}property") if p.get("tag") == "type" for t in p.get("value").split(";")}
+        ntype.append("muscle" if pop.get("component") == "GenericMuscleCell" else "sensory" if "sensory" in tv else "motor" if "motor" in tv else "interneuron")
     idx = {n: i for i, n in enumerate(names)}
 
     S = {k: [] for k in ["pre", "post", "w", "g", "delta", "vth", "k", "erev", "id"]}
@@ -186,7 +189,7 @@ def load_network(nml_path: str) -> Network:
         syn_delta=f("delta"), syn_vth=f("vth"), syn_k=f("k"), syn_erev=f("erev"), syn_id=S["id"],
         gj_a=np.asarray(G["a"], np.int32), gj_b=np.asarray(G["b"], np.int32),
         gj_w=np.asarray(G["w"], np.float64), gj_g=np.asarray(G["g"], np.float64),
-        pulses=np.asarray(pulses, np.float64).reshape(-1, 4),
+        pulses=np.asarray(pulses, np.float64).reshape(-1, 4), ntype=ntype,
     )
 
 def ablate(net: Network, names: list[str]) -> Network:

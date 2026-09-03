@@ -98,15 +98,72 @@ def make_variant(net: Network, name: str) -> tuple[Network, dict]:
 THETA_FIT_C = [-3.4394, -6.2547, 0.1307, 0.6922, 1.4835, 0.7679]
 
 THETA_NAMES = ["log_g_exc", "log_g_inh", "log_g_gj", "log_g_leak", "vth_nn", "log_delta_nn"]
+# 확장 θ (Phase 1d): 억제 시냅스의 동작점을 흥분과 분리. 6개만 주면 억제도 흥분과 같은 Vth/δ 를 쓴다 (기존 결과와 호환).
+THETA8_NAMES = THETA_NAMES + ["vth_inh", "log_delta_inh"]
 
 def apply_theta(net: Network, theta) -> Network:
-    """phase1c_fit.py 의 전역 파라미터 θ(6개)를 Network 수준에서 적용한다 (Params 수준 apply 와 동일한 의미).
-    θ = [log g_exc, log g_inh, log g_gj, log g_leak, Vth_nn(mV), log δ_nn]. 뉴런→뉴런 시냅스와 뉴런 누설에만 적용."""
-    le, li, lg, ll, vth, ld = [float(x) for x in theta]
+    """phase1c_fit.py 의 전역 파라미터 θ를 Network 수준에서 적용한다 (Params 수준 apply 와 동일한 의미).
+    θ(6) = [log g_exc, log g_inh, log g_gj, log g_leak, Vth_nn(mV), log δ_nn]. 뉴런→뉴런 시냅스와 뉴런 누설에만 적용.
+    θ(8) = θ(6) + [Vth_inh(mV), log δ_inh]: 억제 시냅스(erev −70)는 별도 반활성 전압·기울기를 쓴다."""
+    th = [float(x) for x in theta]; assert len(th) in (6, 8), len(th)
+    le, li, lg, ll, vth, ld = th[:6]
+    vth_i, ld_i = (th[6], th[7]) if len(th) == 8 else (vth, ld)
     out = copy.copy(net); isM = net.is_muscle()
     nn = ~(isM[net.syn_pre] | isM[net.syn_post]); exc = nn & np.array(["exc" in s for s in net.syn_id]); inh = nn & np.array(["inh" in s for s in net.syn_id])
     out.syn_g = net.syn_g * np.where(exc, np.exp(le), 1.0) * np.where(inh, np.exp(li), 1.0)
-    out.syn_vth = np.where(nn, vth, net.syn_vth); out.syn_delta = np.where(nn, net.syn_delta * np.exp(ld), net.syn_delta)
+    out.syn_vth = np.where(exc, vth, np.where(inh, vth_i, net.syn_vth))
+    out.syn_delta = np.where(exc, net.syn_delta * np.exp(ld), np.where(inh, net.syn_delta * np.exp(ld_i), net.syn_delta))
     mg = ~(isM[net.gj_a] | isM[net.gj_b]); out.gj_g = np.where(mg, net.gj_g * np.exp(lg), net.gj_g)
     out.leak_scale = getattr(net, "leak_scale", 1.0) * np.exp(ll)
+    return out
+
+
+# ---------------------------------------------------------------------------------------------
+# Phase 1d: 연결 클래스별 파라미터 (ADR-015). 세포 유형 S/I/M(감각/개재/운동) 에 따라
+#   화학 시냅스 18 클래스 = (pre 유형 3) × (post 유형 3) × (흥분/억제 2), 각각 log g, Vth, log δ
+#   갭정션 6 클래스 = 유형 비순서쌍, 각각 log g
+#   누설 3 클래스 = 세포 유형, 각각 log g
+# 근육이 관여하는 연결과 근육 누설은 c302 값 고정. θ 길이 = 18·3 + 6 + 3 = 63.
+CELL_CLASSES = ["sensory", "interneuron", "motor"]
+N_SYN_CLS, N_GJ_CLS, N_CELL_CLS = 18, 6, 3
+_GJ_PAIR = {(0, 0): 0, (0, 1): 1, (0, 2): 2, (1, 1): 3, (1, 2): 4, (2, 2): 5}
+
+def connection_classes(net: Network):
+    """(syn_cls (n_syn,), gj_cls (n_gj,), cell_cls (N,)) — 고정(근육 관련)은 각각 N_SYN_CLS / N_GJ_CLS / N_CELL_CLS."""
+    assert net.ntype is not None, "NeuroML 에 세포 유형 속성이 없다"
+    cell = np.array([CELL_CLASSES.index(t) if t in CELL_CLASSES else N_CELL_CLS for t in net.ntype])
+    inh = np.array(["inh" in s for s in net.syn_id]).astype(int)
+    cp, cq = cell[net.syn_pre], cell[net.syn_post]
+    syn = np.where((cp < 3) & (cq < 3), (cp * 3 + cq) * 2 + inh, N_SYN_CLS)
+    ca, cb = cell[net.gj_a], cell[net.gj_b]
+    gj = np.array([_GJ_PAIR[(min(x, y), max(x, y))] if (x < 3 and y < 3) else N_GJ_CLS for x, y in zip(ca, cb)])
+    return syn.astype(np.int32), gj.astype(np.int32), cell.astype(np.int32)
+
+def syn_class_name(c: int) -> str:
+    if c >= N_SYN_CLS: return "fixed"
+    s = "inh" if c % 2 else "exc"; pq = c // 2; return f"{CELL_CLASSES[pq // 3][0].upper()}→{CELL_CLASSES[pq % 3][0].upper()} {s}"
+
+def gj_class_name(c: int) -> str:
+    if c >= N_GJ_CLS: return "fixed"
+    inv = {v: k for k, v in _GJ_PAIR.items()}; x, y = inv[c]; return f"{CELL_CLASSES[x][0].upper()}↔{CELL_CLASSES[y][0].upper()}"
+
+def theta_class_from_theta8(theta) -> np.ndarray:
+    """θ(6|8) 를 클래스별 θ(63) 로 펼친다 (모든 클래스가 같은 값 → apply_theta 와 동일한 모델)."""
+    th = [float(x) for x in theta]; le, li, lg, ll, vth, ld = th[:6]; vth_i, ld_i = (th[6], th[7]) if len(th) == 8 else (vth, ld)
+    g = np.array([li if c % 2 else le for c in range(N_SYN_CLS)]); v = np.array([vth_i if c % 2 else vth for c in range(N_SYN_CLS)])
+    d = np.array([ld_i if c % 2 else ld for c in range(N_SYN_CLS)])
+    return np.concatenate([g, v, d, np.full(N_GJ_CLS, lg), np.full(N_CELL_CLS, ll)])
+
+def split_theta_class(theta):
+    t = np.asarray(theta, dtype=np.float64); assert len(t) == 3 * N_SYN_CLS + N_GJ_CLS + N_CELL_CLS, len(t)
+    return t[:18], t[18:36], t[36:54], t[54:60], t[60:63]
+
+def apply_theta_class(net: Network, theta) -> Network:
+    """클래스별 θ(63) 를 Network 수준에서 적용한다. 고정 클래스는 그대로."""
+    g, v, d, gj, lk = split_theta_class(theta); sc, gc, cc = connection_classes(net)
+    g = np.append(g, 0.0); v = np.append(v, np.nan); d = np.append(d, 0.0); gj = np.append(gj, 0.0); lk = np.append(lk, 0.0)
+    out = copy.copy(net)
+    out.syn_g = net.syn_g * np.exp(g[sc]); out.syn_vth = np.where(sc < N_SYN_CLS, v[sc], net.syn_vth); out.syn_delta = net.syn_delta * np.exp(d[sc])
+    out.gj_g = net.gj_g * np.exp(gj[gc])
+    out.leak_scale_cell = np.exp(lk[cc]) * getattr(net, "leak_scale", 1.0)      # (N,) 세포별 누설 배율 (jaxsim.build_params 가 읽음)
     return out

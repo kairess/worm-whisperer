@@ -21,6 +21,7 @@ ap.add_argument("--amp", type=float, default=2.0); ap.add_argument("--stim_ms", 
 ap.add_argument("--dt", type=float, default=0.25); ap.add_argument("--limit", type=int, default=0); ap.add_argument("--min_measured", type=int, default=30)
 ap.add_argument("--win", default=None, help="ΔV 평균 창 'start,end' ms (기본: 전체 dur)")
 ap.add_argument("--theta", default=None, help="phase1c 전역 파라미터 6개 (쉼표 구분) 또는 log.json 경로(마지막 스텝)")
+ap.add_argument("--theta_class", default=None, help="phase1d 클래스별 θ(63): log.json 경로(마지막 스텝) 또는 쉼표 구분")
 ap.add_argument("--exclude", default=None, help="split.json 경로: 그 안의 train 자극 뉴런을 평가에서 제외")
 a = ap.parse_args()
 
@@ -29,6 +30,10 @@ if a.theta:
     from worm.neural.variants import apply_theta
     th = json.load(open(a.theta))[-1]["theta"] if a.theta.endswith(".json") else [float(x) for x in a.theta.split(",")]
     net = apply_theta(net, th); vinfo["theta"] = th; print("theta:", np.round(th, 3).tolist())
+if a.theta_class:
+    from worm.neural.variants import apply_theta_class
+    th = json.load(open(a.theta_class))[-1]["theta"] if a.theta_class.endswith(".json") else [float(x) for x in a.theta_class.split(",")]
+    net = apply_theta_class(net, th); vinfo["theta_class"] = th; print("theta_class: 63 params from", a.theta_class)
 P = jaxsim.build_params(net, jnp.float32); N = net.n; isM = net.is_muscle()
 atl = np.load("worm/data/randi2023_sigprop.npz"); ids = [str(x) for x in atl["ids"]]; dff, q = atl["dff"], atl["q"]
 aidx = {n: i for i, n in enumerate(ids)}; aidx["AWCL"] = aidx["AWCOFF"]; aidx["AWCR"] = aidx["AWCON"]
