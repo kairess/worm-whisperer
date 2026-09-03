@@ -35,4 +35,5 @@
 
 ## 5. 다른 컴퓨터에서 이어가기
 - macOS Intel: README 의 우회(JAX 0.4.38, nrnivmodl CXX, openjdk@21) 필요. Apple Silicon/Linux: JAX·torch 최신으로 올려도 됨(pyproject 의 고정 해제).
+- 2026-09-03 두 번째 Intel Mac 으로 이전: `runs/` 복사본으로 Phase 0 재생성 없이 테스트 18개·웹 UI 정상. uv 0.4.24 → 0.12.9 업그레이드, `requires-python <3.13` 추가(uv.lock 갱신). brew openjdk@21 은 이 기기에서 권한 오류로 미설치 — Phase 0 재실행 시에만 필요.
 - Claude Code 로 이어갈 때: 이 폴더의 `CLAUDE.md` 가 자동으로 읽힌다. 대화 원본을 다시 보려면 `history/*.jsonl`.

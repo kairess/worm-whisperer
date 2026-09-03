@@ -49,3 +49,6 @@ uv run pytest -q tests                                    # 테스트 (통합 �
 - `pynml -neuron -run`은 pip 설치 NEURON을 못 찾는다. 스크립트는 `-neuron`으로 내보내기만 하고, `nrnivmodl`로 직접 컴파일한 뒤 생성된 `LEMS_*_nrn.py`를 실행한다.
 - `nrnivmodl` 컴파일 시 `'cstddef' file not found`가 나면 CommandLineTools의 깨진 libc++ 헤더 때문. 스크립트는 `CXX="clang++ -I$(xcrun --show-sdk-path)/usr/include/c++/v1"`로 우회한다.
 - Java는 `/usr/local/opt/openjdk@21/bin`을 PATH 앞에 넣는다 (스크립트 내부에서 처리).
+- Python은 3.12를 써야 한다 (`requires-python <3.13`: torch 2.2.2 에 3.13 휠이 없음). uv 가 3.13을 고르면 `uv sync -p 3.12`.
+- `[dependency-groups]`(pytest)는 uv ≥ 0.4.27 에서만 설치된다. 오래된 uv 면 `uv self update` 후 `uv sync`.
+- `runs/`(약 630 MB)를 통째로 복사해 오면 Phase 0 재실행(Java·NEURON 컴파일)은 필요 없다.
