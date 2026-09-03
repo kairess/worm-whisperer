@@ -12,9 +12,13 @@ import c302
 sys.path.insert(0, os.getcwd())
 import neuroml.writers as writers
 
-SDK = subprocess.check_output(["xcrun", "--show-sdk-path"], text=True).strip()
-CXX = f"/usr/bin/clang++ -I{SDK}/usr/include/c++/v1"   # 툴체인의 깨진 libc++ 헤더 우회
-JAVA_BIN = "/usr/local/opt/openjdk@21/bin"
+if sys.platform == "darwin":                              # Intel Mac 우회 (README 참고)
+    SDK = subprocess.check_output(["xcrun", "--show-sdk-path"], text=True).strip()
+    CXX = f"/usr/bin/clang++ -I{SDK}/usr/include/c++/v1"   # 툴체인의 깨진 libc++ 헤더 우회
+    JAVA_BIN = "/usr/local/opt/openjdk@21/bin"
+else:                                                     # Linux: 시스템 g++ 와 PATH 의 java 사용 (apt: build-essential openjdk-21-jre-headless)
+    CXX = None
+    JAVA_BIN = None
 
 def range_incl(a, b):
     return range(a, b + 1)
@@ -56,12 +60,12 @@ def build(a, out_dir):
     return reference
 
 def run_neuron(out_dir, reference):
-    env = dict(os.environ, PATH=JAVA_BIN + ":" + os.environ["PATH"])
+    env = dict(os.environ, PATH=JAVA_BIN + ":" + os.environ["PATH"]) if JAVA_BIN else dict(os.environ)
     r = subprocess.run(["pynml", f"LEMS_{reference}.xml", "-neuron", "-nogui"], cwd=out_dir, env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(os.path.join(out_dir, f"LEMS_{reference}_nrn.py")):
         print(r.stdout[-2000:], r.stderr[-2000:]); raise SystemExit("pynml export failed")
     shutil.rmtree(os.path.join(out_dir, "x86_64"), ignore_errors=True)
-    r = subprocess.run(["nrnivmodl"], cwd=out_dir, env=dict(env, CXX=CXX), capture_output=True, text=True)
+    r = subprocess.run(["nrnivmodl"], cwd=out_dir, env=dict(env, CXX=CXX) if CXX else env, capture_output=True, text=True)
     if r.returncode != 0:
         print(r.stdout[-3000:], r.stderr[-3000:]); raise SystemExit("nrnivmodl failed")
     t0 = time.time()

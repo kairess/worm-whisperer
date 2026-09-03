@@ -32,10 +32,16 @@ class Worm:
         self.gate_thresh, self.gate_slope = gate_thresh, gate_slope
         self.AVB = [net.index("AVBL"), net.index("AVBR")]; self.AVA = [net.index("AVAL"), net.index("AVAR")]
         self.SMDD = [net.index("SMDDL"), net.index("SMDDR")]; self.SMDV = [net.index("SMDVL"), net.index("SMDVR")]; self.RIS = net.index("RIS")
+        self.RIV = [net.index("RIVL"), net.index("RIVR")]
         self.V_rest = None; self.motor_dt = 5e-3   # 운동층 갱신 5 ms (근육 τ 100 ms 대비 충분)
-        self.k_turn = 0.06         # 조향: 머리 6 행의 선호 곡률 편향 = k_turn × (ΔV_SMDD − ΔV_SMDV) [1/mm per mV] (Gray et al. 2005 SMD 머리 조향)
+        self.k_turn = 0.03         # 조향: 앞쪽 head_rows 행의 선호 곡률 편향 = k_turn × (ΔV_SMDD − ΔV_SMDV) [1/mm per mV] (Gray et al. 2005 SMD 머리 조향)
         self.k_steer = 0.0         # (구) 문턱 편향 방식, 사용 안 함
-        self.head_rows = 6
+        self.head_rows = 12        # 앞쪽 절반 (SMD 돌기는 준측삭을 따라 몸 중간까지 뻗음). 6 행이면 수용기 창(6 행 이동 창)과 어긋나 파동 주파수가 1 Hz 로 올랐다 (2026-09-03, runs/phase3/turn_freq_scan.txt)
+        # 오메가턴 (ADR-016 후보): RIV 활성(ΔV > riv_thresh) 이 시작되면 깊은 배쪽 굽힘 펄스가 머리에서 꼬리로 omega_T 초에 걸쳐 이동한다
+        # (Gray 2005: RIV/SMDV 가 오메가턴의 배쪽 깊은 굽힘; Broekmans 2016: 오메가 = 머리→꼬리로 전파하는 깊은 배쪽 굽힘). 진폭 = −k_omega × (ΔV_RIV − riv_thresh).
+        # omega_T = 0 이면 정적 편향(앞쪽 omega_rows 행). k_omega = 0 이면 비활성 (기본).
+        # 채택값 (runs/phase3/omega_scan_*.txt): 문턱 30 mV 는 직접 자극(ΔV_RIV ≈ 55) 만 통과시키고 갭정션 누설(SMD 자극 시 ≈ 20) 은 무시. 유턴 구간 2 s 에 +162° 재정향.
+        self.k_omega = 0.36; self.riv_thresh = 30.0; self.omega_T = 2.5; self.omega_sigma = 4.0; self.omega_rows = 12; self._omega_t0 = None
         self.ris_gate = True       # 확장 X: RIS 활성(ΔV > gate_thresh) 시 운동층 정지 (Turek et al. 2016). 커넥톰 외 가정이므로 플래그
         self.last = {}
 
@@ -78,15 +84,25 @@ class Worm:
             quiescent = self.ris_gate and dRIS > self.gate_thresh and dRIS > 1.5 * max(dB, dA, dSMDmax)   # RIS 가 다른 명령/조향 뉴런보다 뚜렷이 더 활성일 때만
             if quiescent: g_f = g_b = 0.0
             gates = (g_f, g_b); head_bias = self.k_turn * dSMD; steer = self.k_steer * dSMD
-            self.last = {"dAVB": float(dB), "dAVA": float(dA), "dSMD": float(dSMD), "dRIS": float(dRIS), "quiescent": bool(quiescent), "head_bias": float(head_bias), "steer": float(steer)}
+            dRIV = dV[self.RIV].mean(); omega_bias = -self.k_omega * max(dRIV - self.riv_thresh, 0.0)   # 배쪽(κ<0) 깊은 굽힘 진폭
+            if omega_bias < 0 and self._omega_t0 is None: self._omega_t0 = self.t
+            elif omega_bias == 0: self._omega_t0 = None
+            self.last = {"dAVB": float(dB), "dAVA": float(dA), "dSMD": float(dSMD), "dRIS": float(dRIS), "dRIV": float(dRIV), "quiescent": bool(quiescent),
+                         "head_bias": float(head_bias), "omega_bias": float(omega_bias), "steer": float(steer)}
             steps = int(round(self.motor_dt / self.body.dt)); n_blocks = int(round(self.block_ms / 1000 / self.motor_dt))
+            koff = np.zeros(24); koff[: self.head_rows] += head_bias                                         # 조향(머리) 편향 (근육 행 24)
+            if omega_bias < 0:
+                if self.omega_T > 0:                                                                          # 이동 펄스: 중심이 머리(−σ) → 꼬리(24+σ)
+                    c = -self.omega_sigma + (24 + 2 * self.omega_sigma) * ((self.t - self._omega_t0) / 1000) / self.omega_T
+                    koff += omega_bias * np.exp(-((np.arange(24) - c) / self.omega_sigma) ** 2)
+                else: koff[: self.omega_rows] += omega_bias                                                    # 정적 편향
+            koff_j = 0.5 * (koff[1:] + koff[:-1])                                                             # 관절 23 (인접 행 평균)
             for _ in range(n_blocks):
                 kr = np.concatenate([[self.kappa[0]], 0.5 * (self.kappa[1:] + self.kappa[:-1]), [self.kappa[-1]]])
-                koff = np.zeros(24); koff[: self.head_rows] = head_bias
                 fD, fV = self.fwd.step(kr, self.motor_dt, g_f, steer, kappa_offset=koff); bD, bV = self.bwd.step(kr, self.motor_dt, g_b, steer, kappa_offset=koff)
                 A_D = np.clip(fD + bD, 0, 1); A_V = np.clip(fV + bV, 0, 1)
                 kappa0 = preferred_curvature(A_D, A_V, self.kappa_max_boyle)
-                kappa0 = kappa0.copy(); kappa0[: self.head_rows] += head_bias        # 머리 조향 편향
+                kappa0 = kappa0 + koff_j                                             # 선호 곡률에 같은 편향 (수용기 기준도 함께 이동, ADR-013)
                 self.x = self.body.run(self.x, np.broadcast_to(kappa0, (steps, len(kappa0)))); self.kappa = np.asarray(self.body.curvature(self.x))
         self.kappa = np.asarray(self.body.curvature(self.x)); self.t += self.block_ms
         rec = {"t": self.t, "x": np.asarray(self.x).copy(), "kappa": self.kappa.copy(), "A_D": A_D, "A_V": A_V, "gates": gates, "readout": dict(self.last), "I_ext": dict(I)}

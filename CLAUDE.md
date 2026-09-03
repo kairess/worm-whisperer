@@ -5,7 +5,7 @@
 ## 먼저 읽을 것
 1. `docs/SESSION_LOG.md` — 지금까지의 작업 요약과 미해결 과제
 2. `PLAN.md` — 목표, 원칙(1.1절), 단계 상태
-3. `docs/DECISIONS.md` — ADR 1–14 (왜 그렇게 했는지)
+3. `docs/DECISIONS.md` — ADR 1–16 (왜 그렇게 했는지)
 4. 결과: `docs/RESULTS_PHASE1.md`, `RESULTS_PHASE2.md`, `RESULTS_PHASE3_4.md`
 
 ## 지켜야 할 원칙
@@ -13,15 +13,16 @@
 - LLM/번역기는 `worm/llm/protocols.py` 의 화이트리스트 밖 뉴런(운동뉴런, 근육)을 자극할 수 없다.
 - 새 기전은 근거 논문과 함께 docs 에 기록한다. 부정 결과도 기록한다.
 - 보고 수치는 dt 0.05 ms float64 로 재확인 (탐색은 dt 0.25).
+- Linux/GPU: 적합·탐색 스크립트는 GPU(JAX CUDA), 서버·테스트·단일 궤적은 CPU 가 빠르다(`JAX_PLATFORMS=cpu` 기본). 동시 실행 시 `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
 - 사용자는 한국어로 소통하며, 자율 진행과 솔직한 한계 보고를 원한다.
 
 ## 실행
 ```bash
 uv sync
-uv run python experiments/phase0_c302_reference.py --full     # runs/phase0/ 기준 네트워크 (Java, NEURON 필요; README 우회 참고)
+uv run python experiments/phase0_c302_reference.py --full     # runs/phase0/ 기준 네트워크 (Java, NEURON 필요; runs/ 가 있으면 생략. README 참고)
 uv run python experiments/phase4_train_translator.py           # 번역기 가중치
 uv run uvicorn worm.server.app:app --port 8000                 # 데모 UI
-uv run pytest -q tests                                         # 테스트 18개
+uv run pytest -q tests                                         # 테스트 19개
 ```
 
 ## 구조

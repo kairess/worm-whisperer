@@ -3,6 +3,7 @@
 """
 import os, sys, json, asyncio, time, numpy as np
 sys.path.insert(0, os.getcwd())
+os.environ.setdefault("JAX_PLATFORMS", "cpu")   # 대화형 단일 궤적 시뮬레이션은 CPU 가 GPU 보다 빠르다 (README Linux 절). GPU 를 쓰려면 JAX_PLATFORMS=cuda
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 from worm.sim import Worm

@@ -25,10 +25,11 @@ def stop(dur=10.0):                    return []
 def turn_left(amp=5.0, dur=10.0):      return [(0, dur, {**_stim(["AVB"], amp), **_stim(["SMDV"], amp)})]     # 규약: 배쪽 굽힘 = 반시계 = 왼쪽 (화면 y 위쪽 기준; 벌레가 왼쪽 옆면으로 누운 자세)
 def turn_right(amp=5.0, dur=10.0):     return [(0, dur, {**_stim(["AVB"], amp), **_stim(["SMDD"], amp)})]
 def omega_turn(amp=5.0, dur=10.0):     return [(0, 2, _stim(["AVA"], amp)), (2, 4, {**_stim(["AVB"], amp), **_stim(["SMDV", "RIV"], amp)}), (4, dur, _stim(["AVB"], amp))]
-def local_search(amp=5.0, dur=12.0):   # 후진 1 s + 오메가 1 s + 전진 2 s 반복 (Gray 2005; Hills 2004)
-    sch = []; t = 0.0; side = ["SMDD", "SMDV"]; i = 0
+def local_search(amp=5.0, dur=12.0):   # 피루엣 반복: 후진 1 s → 오메가(RIV+SMDV) 2 s → 전진하며 머리 좌우 1.5 s 씩 (Gray 2005; Hills 2004). 6 s 주기
+    sch = []; t = 0.0
     while t < dur:
-        sch += [(t, t + 1, _stim(["AVA"], amp)), (t + 1, t + 2, {**_stim(["AVB"], amp), **_stim([side[i % 2]], amp)}), (t + 2, t + 4, _stim(["AVB"], amp))]; t += 4; i += 1
+        sch += [(t, t + 1, _stim(["AVA"], amp)), (t + 1, t + 3, {**_stim(["AVB"], amp), **_stim(["SMDV", "RIV"], amp)}),
+                (t + 3, t + 4.5, {**_stim(["AVB"], amp), **_stim(["SMDD"], amp)}), (t + 4.5, t + 6, {**_stim(["AVB"], amp), **_stim(["SMDV"], amp)})]; t += 6
     return sch
 def head_sweep(amp=5.0, dur=10.0):     # 1 Hz 머리 좌우 흔들기 (foraging)
     sch = [(0, dur, _stim(["AVB"], amp))]; t = 0.0; i = 0
