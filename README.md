@@ -2,7 +2,7 @@
 
 **Grounding Language in a Connectome** — a simulator that turns natural-language commands into *C. elegans* behavior *through* the worm's connectome, without letting the language model touch the muscles.
 
-*한국어 README: [README.ko.md](README.ko.md)*
+*한국어 README: [README.ko.md](README.ko.md)* · **Live demo (recorded simulations, mazes and neuron readouts): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
 
 ## The idea
 

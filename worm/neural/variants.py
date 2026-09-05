@@ -74,6 +74,13 @@ def make_variant(net: Network, name: str) -> tuple[Network, dict]:
     """이름 규약: V0 | V1[-dominant][-split] | V2-<g_chem>[-gj<g_gj>] | V3-... (V1 옵션 + V2 옵션) | Vfit (= V1-split + THETA_FIT_C)"""
     if name == "Vfit":
         out, info = make_variant(net, "V1-split"); out = apply_theta(out, THETA_FIT_C); info["variant"] = "Vfit"; info["theta"] = THETA_FIT_C; return out, info
+    if name.startswith("Vfit-shuffle"):
+        # 대조군 (논문 E5): Vfit 동역학은 그대로, 뉴런–뉴런 화학 시냅스의 후시냅스 표적과 갭정션의 한쪽 끝을 무작위로 뒤섞는다 (개수·가중치·부호 분포 보존, 근육 관련 연결은 유지).
+        # 배선이 실제 커넥톰이어야만 행동이 나오는지를 묻는 시험. seed 는 이름 끝 숫자.
+        seed = int(name[len("Vfit-shuffle"):] or 0); out, info = make_variant(net, "Vfit"); out = copy.copy(out); rng = np.random.default_rng(seed)
+        isM = out.is_muscle(); nn = ~(isM[out.syn_pre] | isM[out.syn_post]); post = out.syn_post.copy(); post[nn] = rng.permutation(post[nn]); out.syn_post = post
+        mg = ~(isM[out.gj_a] | isM[out.gj_b]); b = out.gj_b.copy(); b[mg] = rng.permutation(b[mg]); out.gj_b = b
+        info["variant"] = name; info["shuffled_syn"] = int(nn.sum()); info["shuffled_gj"] = int(mg.sum()); return out, info
     parts = name.split("-"); base = parts[0]; opts = parts[1:]; info = {"variant": name}
     out = net
     if base in ("V1", "V3"):

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>worm-whisperer — what a fixed connectome can and cannot do</title>
+<style>
+  :root { --bg:#0b0f14; --panel:#121923; --ink:#e8eef6; --muted:#8fa3b8; --accent:#4cc9f0; --warm:#f9a03f; --good:#7bd88f; --bad:#f25f5c; --grid:#1d2733; }
+  * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
+  a { color:var(--accent) } header { padding:40px 24px 16px; max-width:1180px; margin:0 auto }
+  h1 { font-size:30px; margin:0 0 6px; letter-spacing:-.01em } h1 small { display:block; font-size:15px; color:var(--muted); font-weight:400; margin-top:6px }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 24px 60px } .row { display:grid; grid-template-columns: 1fr 340px; gap:18px; align-items:start }
+  @media (max-width: 900px) { .row { grid-template-columns:1fr } }
+  .panel { background:var(--panel); border:1px solid #1e2a38; border-radius:14px; padding:14px }
+  canvas { width:100%; height:auto; display:block; border-radius:10px; background:#070a0e }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0 4px }
+  select, button { background:#182230; color:var(--ink); border:1px solid #2a3949; border-radius:8px; padding:7px 10px; font:inherit; cursor:pointer } button.primary { background:var(--accent); color:#04121a; border-color:transparent; font-weight:600 }
+  .note { color:var(--muted); font-size:14px; margin:6px 0 0 } .kpi { display:flex; gap:14px; font-variant-numeric:tabular-nums; color:var(--muted); font-size:13px; margin-top:6px }
+  .neurons { display:grid; grid-template-columns: 1fr; gap:8px } .nr { display:grid; grid-template-columns: 58px 1fr 52px; gap:8px; align-items:center; font-size:13px }
+  .nr .bar { height:12px; background:#0f151d; border-radius:6px; overflow:hidden; position:relative } .nr .bar i { position:absolute; left:0; top:0; bottom:0; width:0; background:var(--accent); transition:width .05s linear }
+  .nr .bar i.stim { background:var(--warm) } .nr .v { text-align:right; color:var(--muted); font-variant-numeric:tabular-nums }
+  .legend { font-size:12px; color:var(--muted); margin-top:10px } .legend b { color:var(--ink) }
+  .gates { display:flex; gap:8px; margin-top:10px; font-size:13px } .gate { padding:4px 10px; border-radius:999px; border:1px solid #2a3949; color:var(--muted) } .gate.on { background:#173a2a; color:var(--good); border-color:#22553d }
+  .gate.omega { } .gate.omega.on { background:#3a2a17; color:var(--warm); border-color:#5a4322 }
+  section.findings { margin-top:36px } .cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:12px }
+  .card { background:var(--panel); border:1px solid #1e2a38; border-radius:14px; padding:16px } .card h3 { margin:0 0 6px; font-size:16px } .card p { margin:0; color:var(--muted); font-size:14px }
+  .card .num { font-size:26px; font-weight:700; color:var(--ink); letter-spacing:-.01em } .fine { color:var(--muted); font-size:13px; margin-top:26px }
+  .principle { border-left:3px solid var(--accent); padding:6px 12px; color:var(--muted); margin:14px 0 } .principle b { color:var(--ink) }
+</style>
+</head>
+<body>
+<header>
+  <h1>worm-whisperer <small>Grounding behaviour in a fixed <i>C. elegans</i> connectome: a learning agent may stimulate only a whitelist of interneurons — the wiring, the motor layer and the body do the rest.</small></h1>
+  <div class="principle"><b>Principle.</b> The connectome (which neurons connect, and how many synapses) is never modified. The agent cannot touch motor neurons or muscles. Everything below is a <b>recording</b> from the simulator (302-neuron c302 model in JAX + Boyle 2012 motor layer + 2D body on agar), replayed at 20 frames per simulated second.</div>
+</header>
+<div class="wrap">
+  <div class="row">
+    <div class="panel">
+      <div class="controls">
+        <select id="scene"></select>
+        <button class="primary" id="play">Play</button>
+        <button id="restart">Restart</button>
+        <label>speed <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+        <label><input type="checkbox" id="trail" checked> trail</label>
+        <label><input type="checkbox" id="odor" checked> odour field</label>
+      </div>
+      <canvas id="cv" width="1200" height="760"></canvas>
+      <div class="note" id="note"></div>
+      <div class="kpi"><span id="kt">t = 0.0 s</span><span id="kc">C = —</span><span id="kd">distance = —</span><span id="ks"></span></div>
+    </div>
+    <div class="panel">
+      <div style="font-weight:600; margin-bottom:8px">Neurons read by the motor layer <span style="color:var(--muted); font-weight:400">(ΔV from rest, mV)</span></div>
+      <div class="neurons" id="neurons"></div>
+      <div class="gates"><span class="gate" id="gf">forward gate</span><span class="gate" id="gb">reverse gate</span><span class="gate omega" id="go">deep bend</span></div>
+      <div class="legend"><b>Orange bar</b> = channel currently stimulated by the agent (whitelist only: AVB, AVA, SMDD, SMDV, RIV). <b>Blue</b> = membrane potential rise produced by the network. Gates open when AVB or AVA exceeds +3 mV above rest; a deep bend (omega) fires when RIV exceeds +30 mV, its dorsal/ventral direction set by SMDD − SMDV (ADR-017).</div>
+    </div>
+  </div>
+
+  <section class="findings">
+    <h2 style="margin:0 0 4px">What we found</h2>
+    <div class="note">Numbers are from pre-registered evaluations (n = 128–256 random starts unless noted). Negative results are kept on purpose.</div>
+    <div class="cards">
+      <div class="card"><div class="num">0.914</div><h3>Chemotaxis through command interneurons</h3><p>Stimulating only AVB, AVA, SMDD, SMDV and RIV, an evolved policy reaches an odour source 2.5 mm away within 40 s in 91 % of trials (random policy: 4 %). The minimal circuit needs all three of reversal, deep bend and steering.</p></div>
+      <div class="card"><div class="num">0.109</div><h3>Sensory neurons alone cannot do it</h3><p>With only sensory channels (ASE, AWC, AWA, ASK, ASH, PLM, ALM, AVM) the same learner stays at chance (0.125). In this model the sensory-to-command step of the connectome is silent — a negative result confirmed both with static stimulation and with learning.</p></div>
+      <div class="card"><div class="num">ρ = −1.00</div><h3>The pirouette rule re-emerges</h3><p>Given reversal and deep-bend channels only, evolution rediscovers the textbook rule: concentration falling → reverse + omega turn, rising → run (Pierce-Shimomura et al. 1999). Reversal onset rate falls monotonically with dC/dt in the full policy too.</p></div>
+      <div class="card"><div class="num">100 % left</div><h3>Corners are turned by the deep bend</h3><p>In a corridor four body-widths wide, head steering alone cannot take a corner (0/32). Only a deep bend pressed against the wall does — and its dorsal/ventral direction is the turn direction. With ventral-only bends the worm enters the left arm of a T-maze on 128/128 trials and never takes a right corner.</p></div>
+      <div class="card"><div class="num">1.00 → 1.00</div><h3>Right corners need dorsal bends</h3><p>Letting SMDD/SMDV set the bend direction (as reported for real worms, Nature Neurosci. 2026) makes the right-turn corridor learnable (reach 1.00) — but the learned policy becomes right-handed and loses the left corner.</p></div>
+      <div class="card"><div class="num">0.73</div><h3>Lateral information selects the bend side</h3><p>With a left/right concentration difference at the nose (an idealised head-sweep sample), the policy chooses the bend direction toward the source in 73 % of pulses (62 % without it) and navigates as fast as an oracle that knows the direction.</p></div>
+      <div class="card"><div class="num">stall ⇒ reverse</div><h3>Why the worm still goes left first</h3><p>In narrow corridors a wall stall reads as "concentration stopped rising", which triggers the open-field reflex reverse + ventral bend. That reflex is the only way to take a corner — and the reason a correctly aimed right entry is aborted. Learning settles on "go left first, reverse if worse".</p></div>
+      <div class="card"><div class="num">prediction</div><h3>Testable in real worms</h3><p>In narrow T-mazes, arm choice should be decided by the dorsal/ventral direction of the bend executed at the junction; conditions that suppress dorsal turns should bias animals to the ventral arm and delay reaching the other goal. Wall stalls should trigger pirouettes.</p></div>
+    </div>
+    <p class="fine">Model: OpenWorm c302 (C2) neurons re-implemented in JAX with fitted dynamics ("Vfit"); Boyle, Berri &amp; Cohen 2012 motor layer gated by AVB/AVA; 2D viscoelastic body with wall contact. Learning: evolution strategies over a small MLP. Full methods, decision records (ADR-001…017), and every negative result are in the repository: <a href="https://github.com/kairess/worm-whisperer">github.com/kairess/worm-whisperer</a>. Korean documentation lives in <code>docs/</code>.</p>
+  </section>
+</div>
+<script>
+(function(){
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const sel = document.getElementById('scene'), playBtn = document.getElementById('play'), restartBtn = document.getElementById('restart'), speedSel = document.getElementById('speed');
+  const trailCb = document.getElementById('trail'), odorCb = document.getElementById('odor'), note = document.getElementById('note');
+  const kt = document.getElementById('kt'), kc = document.getElementById('kc'), kd = document.getElementById('kd'), ks = document.getElementById('ks');
+  const neuronsDiv = document.getElementById('neurons'); const gf = document.getElementById('gf'), gb = document.getElementById('gb'), go = document.getElementById('go');
+  const READ = ["AVB","AVA","SMDD","SMDV","RIV","RIS"], CH = ["AVB","AVA","SMDD","SMDV","RIV"], SCALE = {AVB:25, AVA:25, SMDD:60, SMDV:60, RIV:60, RIS:10};
+  const bars = {}; READ.forEach(n => { const row = document.createElement('div'); row.className='nr'; row.innerHTML = `<span>${n}</span><div class="bar"><i></i></div><span class="v">—</span>`; neuronsDiv.appendChild(row); bars[n] = {i: row.querySelector('i'), v: row.querySelector('.v')}; });
+  let scene = null, frame = 0, playing = false, acc = 0, last = 0, view = null, trailPts = [];
+  function fitView(){ const w = scene.walls; let xs=[], ys=[]; w.forEach(s => { xs.push(s[0], s[2]); ys.push(s[1], s[3]); }); scene.frames.forEach((f,i)=>{ if(i%20===0){ f.body.forEach(p=>{xs.push(p[0]); ys.push(p[1]);}); } }); xs.push(scene.src[0]); ys.push(scene.src[1]);
+    const minx = Math.min(...xs)-0.4, maxx = Math.max(...xs)+0.4, miny = Math.min(...ys)-0.4, maxy = Math.max(...ys)+0.4; const sx = cv.width/(maxx-minx), sy = cv.height/(maxy-miny); const s = Math.min(sx, sy);
+    view = { s, ox: (cv.width - s*(maxx-minx))/2 - minx*s, oy: (cv.height + s*(maxy-miny))/2 + miny*s }; }
+  const X = x => view.ox + x*view.s, Y = y => view.oy - y*view.s;
+  function drawOdor(){ if(!odorCb.checked) return; const [sx, sy] = scene.src; const R = 3*scene.sigma; const g = ctx.createRadialGradient(X(sx), Y(sy), 0, X(sx), Y(sy), R*view.s); g.addColorStop(0, 'rgba(249,160,63,0.45)'); g.addColorStop(0.35, 'rgba(249,160,63,0.16)'); g.addColorStop(1, 'rgba(249,160,63,0)'); ctx.fillStyle = g; ctx.fillRect(0,0,cv.width,cv.height); }
+  function drawWalls(){ ctx.strokeStyle = '#5b7089'; ctx.lineWidth = Math.max(2, 0.03*view.s); ctx.lineCap='round'; scene.walls.forEach(s => { ctx.beginPath(); ctx.moveTo(X(s[0]), Y(s[1])); ctx.lineTo(X(s[2]), Y(s[3])); ctx.stroke(); }); }
+  function drawGoal(){ const [sx, sy] = scene.src; ctx.beginPath(); ctx.arc(X(sx), Y(sy), scene.reach_r*view.s, 0, Math.PI*2); ctx.strokeStyle='rgba(123,216,143,0.9)'; ctx.setLineDash([6,6]); ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#7bd88f'; ctx.beginPath(); ctx.arc(X(sx), Y(sy), 5, 0, Math.PI*2); ctx.fill(); ctx.fillStyle='#8fa3b8'; ctx.font='13px sans-serif'; ctx.fillText('odour source', X(sx)+10, Y(sy)-10); }
+  function drawWorm(f){ const b = f.body; ctx.lineJoin='round'; ctx.lineCap='round';
+    if(trailCb.checked && trailPts.length>1){ ctx.strokeStyle='rgba(76,201,240,0.35)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(trailPts[0][0]), Y(trailPts[0][1])); for(const p of trailPts) ctx.lineTo(X(p[0]), Y(p[1])); ctx.stroke(); }
+    const w = 0.08*view.s; ctx.strokeStyle = f.omega!==0 ? (f.omega>0 ? '#f9a03f' : '#f25f5c') : '#e8eef6'; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(X(b[0][0]), Y(b[0][1])); for(let i=1;i<b.length;i++) ctx.lineTo(X(b[i][0]), Y(b[i][1])); ctx.stroke();
+    ctx.fillStyle='#4cc9f0'; ctx.beginPath(); ctx.arc(X(b[0][0]), Y(b[0][1]), w*0.7, 0, Math.PI*2); ctx.fill(); }
+  function drawFrame(){ if(!scene) return; const f = scene.frames[frame]; ctx.fillStyle='#070a0e'; ctx.fillRect(0,0,cv.width,cv.height); drawOdor(); drawWalls(); drawGoal(); drawWorm(f);
+    ctx.fillStyle='#8fa3b8'; ctx.font='13px sans-serif'; ctx.fillText('1 mm', 20, cv.height-18); ctx.fillRect(20, cv.height-34, view.s, 2);
+    READ.forEach((n,i)=>{ const v = f.dv[i]; const stim = CH.indexOf(n)>=0 && f.a[CH.indexOf(n)]>0.5; const pct = Math.max(0, Math.min(100, v/SCALE[n]*100)); bars[n].i.style.width = pct+'%'; bars[n].i.className = stim ? 'stim' : ''; bars[n].v.textContent = (v>=0?'+':'')+v.toFixed(1); });
+    gf.className = 'gate'+(f.gates[0]?' on':''); gb.className = 'gate'+(f.gates[1]?' on':''); go.className = 'gate omega'+(f.omega!==0?' on':''); go.textContent = f.omega>0 ? 'deep bend (dorsal)' : f.omega<0 ? 'deep bend (ventral)' : 'deep bend';
+    kt.textContent = `t = ${f.t.toFixed(1)} s`; kc.textContent = `C = ${f.c.toFixed(3)}`; kd.textContent = `distance = ${f.d.toFixed(2)} mm`; ks.textContent = (frame===scene.frames.length-1) ? (scene.reached ? '✓ reached the source' : 'episode ended') : ''; }
+  function step(ts){ if(!playing){ last = ts; return; } const dt = (ts-last)/1000; last = ts; acc += dt*parseFloat(speedSel.value); const per = scene.block_s; while(acc >= per && frame < scene.frames.length-1){ acc -= per; frame++; if(frame%2===0) trailPts.push(scene.frames[frame].body[0]); } drawFrame(); if(frame >= scene.frames.length-1){ playing=false; playBtn.textContent='Play'; } else requestAnimationFrame(step); }
+  function load(id){ playing=false; playBtn.textContent='Play'; fetch(`assets/scenes/${id}.json`).then(r=>r.json()).then(d=>{ scene=d; frame=0; acc=0; trailPts=[]; fitView(); note.textContent = d.note; drawFrame(); }); }
+  playBtn.onclick = ()=>{ if(!scene) return; if(frame>=scene.frames.length-1){ frame=0; trailPts=[]; } playing=!playing; playBtn.textContent = playing?'Pause':'Play'; if(playing){ last=performance.now(); requestAnimationFrame(step);} };
+  restartBtn.onclick = ()=>{ if(!scene) return; frame=0; acc=0; trailPts=[]; drawFrame(); };
+  sel.onchange = ()=> load(sel.value); trailCb.onchange = drawFrame; odorCb.onchange = drawFrame;
+  fetch('assets/scenes/index.json').then(r=>r.json()).then(list=>{ list.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.title; sel.appendChild(o); }); load(list[0].id); });
+})();
+</script>
+</body>
+</html>

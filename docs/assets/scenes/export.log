@@ -1,0 +1,5 @@
+open_field frames 280 reached True 0.4 MB
+corridor_L frames 780 reached True 1.0 MB
+tmaze_right_goal frames 870 reached True 1.2 MB
+tmaze_left_goal frames 500 reached True 0.7 MB
+corridor_R_dorsal frames 720 reached True 0.9 MB

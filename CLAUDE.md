@@ -5,7 +5,7 @@
 ## 먼저 읽을 것
 1. `docs/SESSION_LOG.md` — 지금까지의 작업 요약과 미해결 과제
 2. `PLAN.md` — 목표, 원칙(1.1절), 단계 상태
-3. `docs/DECISIONS.md` — ADR 1–16 (왜 그렇게 했는지)
+3. `docs/DECISIONS.md` — ADR 1–17 (왜 그렇게 했는지)
 4. 결과: `docs/RESULTS_PHASE1.md`, `RESULTS_PHASE2.md`, `RESULTS_PHASE3_4.md`
 
 ## 지켜야 할 원칙

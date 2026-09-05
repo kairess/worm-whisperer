@@ -2,7 +2,7 @@
 
 **Grounding Language in a Connectome** — 자연어 명령을 *C. elegans* 커넥톰을 **통해** 행동으로 잇는 시뮬레이터. 언어 모델은 근육을 건드리지 않는다.
 
-*English README: [README.md](README.md)*
+*English README: [README.md](README.md)* · **데모 페이지(시뮬레이션 녹화 재생, 미로·뉴런 판독): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
 
 ## 아이디어
 

@@ -11,6 +11,7 @@ from .neural import jaxsim
 from .body.rod2d import Rod2D
 from .body.muscle_map import muscle_rows, activation_from_ca, preferred_curvature
 from .body.boyle_motor import BoyleMotor
+from .body import motor_block
 
 class Worm:
     def __init__(self, nml: str, variant="V0", theta=None, dt_neural=0.25, block_ms=50.0, K_half=2e-7, kappa_max=10.0,
@@ -42,7 +43,11 @@ class Worm:
         # omega_T = 0 이면 정적 편향(앞쪽 omega_rows 행). k_omega = 0 이면 비활성 (기본).
         # 채택값 (runs/phase3/omega_scan_*.txt): 문턱 30 mV 는 직접 자극(ΔV_RIV ≈ 55) 만 통과시키고 갭정션 누설(SMD 자극 시 ≈ 20) 은 무시. 유턴 구간 2 s 에 +162° 재정향.
         self.k_omega = 0.36; self.riv_thresh = 30.0; self.omega_T = 2.5; self.omega_sigma = 4.0; self.omega_rows = 12; self._omega_t0 = None
+        self.omega_smd_dir = False; self.omega_dir_thresh = 10.0   # ADR-017 후보: True 면 펄스 방향 = SMDD−SMDV 부호 (배치 환경과 동일 규칙)
         self.ris_gate = True       # 확장 X: RIS 활성(ΔV > gate_thresh) 시 운동층 정지 (Turek et al. 2016). 커넥톰 외 가정이므로 플래그
+        self.fast_motor = True     # True: 운동층+막대를 JAX 한 블록으로 (motor_block.py, numpy 경로와 동일 결과·3배 빠름). False: numpy 경로 (검증용)
+        self._mb = None; self._mb_state = None
+        self.override = None       # Worm Gym 상한 대조군용: {"g_f","g_b","head_bias","omega_bias"} 를 주면 신경 판독 대신 그 값으로 운동층을 구동 (커넥톰 우회, 원칙 위반 — 자 역할만)
         self.last = {}
 
     def muscle_activation(self):
@@ -85,18 +90,31 @@ class Worm:
             if quiescent: g_f = g_b = 0.0
             gates = (g_f, g_b); head_bias = self.k_turn * dSMD; steer = self.k_steer * dSMD
             dRIV = dV[self.RIV].mean(); omega_bias = -self.k_omega * max(dRIV - self.riv_thresh, 0.0)   # 배쪽(κ<0) 깊은 굽힘 진폭
-            if omega_bias < 0 and self._omega_t0 is None: self._omega_t0 = self.t
+            if self.omega_smd_dir and dSMD > self.omega_dir_thresh: omega_bias = -omega_bias             # 등쪽 굽힘
+            if omega_bias != 0 and self._omega_t0 is None: self._omega_t0 = self.t
             elif omega_bias == 0: self._omega_t0 = None
+            if self.override is not None:
+                o = self.override; g_f, g_b = float(o.get("g_f", g_f)), float(o.get("g_b", g_b)); head_bias = float(o.get("head_bias", head_bias)); omega_bias = float(o.get("omega_bias", omega_bias))
+                if omega_bias < 0 and self._omega_t0 is None: self._omega_t0 = self.t
+                elif omega_bias == 0: self._omega_t0 = None
+                gates = (g_f, g_b)
             self.last = {"dAVB": float(dB), "dAVA": float(dA), "dSMD": float(dSMD), "dRIS": float(dRIS), "dRIV": float(dRIV), "quiescent": bool(quiescent),
                          "head_bias": float(head_bias), "omega_bias": float(omega_bias), "steer": float(steer)}
             steps = int(round(self.motor_dt / self.body.dt)); n_blocks = int(round(self.block_ms / 1000 / self.motor_dt))
             koff = np.zeros(24); koff[: self.head_rows] += head_bias                                         # 조향(머리) 편향 (근육 행 24)
-            if omega_bias < 0:
+            if omega_bias != 0:
                 if self.omega_T > 0:                                                                          # 이동 펄스: 중심이 머리(−σ) → 꼬리(24+σ)
                     c = -self.omega_sigma + (24 + 2 * self.omega_sigma) * ((self.t - self._omega_t0) / 1000) / self.omega_T
                     koff += omega_bias * np.exp(-((np.arange(24) - c) / self.omega_sigma) ** 2)
                 else: koff[: self.omega_rows] += omega_bias                                                    # 정적 편향
             koff_j = 0.5 * (koff[1:] + koff[:-1])                                                             # 관절 23 (인접 행 평균)
+            if self.fast_motor:
+                if self._mb is None:
+                    self._mb = motor_block.make_motor_block(self.body, self.fwd, self.bwd, self.motor_dt, self.block_ms, self.kappa_max_boyle)
+                if self._mb_state is None: self._mb_state = motor_block.init_state(self.x, self.fwd, self.bwd, self.body.dtype)
+                st = (jnp.asarray(self.x, self.body.dtype),) + tuple(self._mb_state[1:])
+                st, A_D, A_V, kap = self._mb(st, g_f, g_b, steer, jnp.asarray(koff, self.body.dtype), jnp.asarray(koff_j, self.body.dtype))
+                self._mb_state = st; self.x = st[0]; A_D, A_V = np.asarray(A_D), np.asarray(A_V); n_blocks = 0
             for _ in range(n_blocks):
                 kr = np.concatenate([[self.kappa[0]], 0.5 * (self.kappa[1:] + self.kappa[:-1]), [self.kappa[-1]]])
                 fD, fV = self.fwd.step(kr, self.motor_dt, g_f, steer, kappa_offset=koff); bD, bV = self.bwd.step(kr, self.motor_dt, g_b, steer, kappa_offset=koff)
