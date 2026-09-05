@@ -2,7 +2,11 @@
 
 **What a fixed connectome can and cannot do** — a whole-body *C. elegans* simulator in which a learning agent may stimulate only a whitelist of interneurons. The 302-neuron wiring, the motor layer and the body do the rest.
 
-*한국어 README: [README.ko.md](README.ko.md)* · **Live demo (recorded simulations, mazes, neuron readouts): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
+![T-maze, food on the right: the worm enters the left arm first, reverses when the odour fades, and reaches the food (recorded simulation)](docs/assets/tmaze_right.gif)
+
+*한국어 README: [README.ko.md](README.ko.md)*
+
+**Live demo (recorded simulations, mazes, neuron readouts): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
 
 ## The question
 

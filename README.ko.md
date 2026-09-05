@@ -2,7 +2,11 @@
 
 **고정된 커넥톰으로 무엇이 되고 안 되는가** — 학습 에이전트가 화이트리스트 개재뉴런만 자극할 수 있는 전신 *C. elegans* 시뮬레이터. 302뉴런 배선, 운동층, 몸이 나머지를 만든다.
 
-*English README: [README.md](README.md)* · **데모 페이지(시뮬레이션 녹화 재생, 미로·뉴런 판독): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
+![T-미로, 먹이가 오른쪽: 왼쪽 팔에 먼저 들어갔다가 냄새가 옅어지면 후진해 먹이에 도달 (시뮬레이션 녹화)](docs/assets/tmaze_right.gif)
+
+*English README: [README.md](README.md)*
+
+**데모 페이지(시뮬레이션 녹화 재생, 미로·뉴런 판독): [kairess.github.io/worm-whisperer](https://kairess.github.io/worm-whisperer/)**
 
 ## 질문
 
