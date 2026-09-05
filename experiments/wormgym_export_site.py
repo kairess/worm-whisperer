@@ -5,16 +5,16 @@ from worm.env.batch import BatchWormEnv, fit_theta
 from worm.env.mazes import MAZES
 CH = ["AVB", "AVA", "SMDD", "SMDV", "RIV"]
 SCENES = [
-    dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
-         note="Whitelisted stimulation of AVB/AVA/SMDD/SMDV/RIV only. Reach 0.988 over 256 random starts, median 16.5 s."),
-    dict(id="corridor_L", title="L-corridor (left turn): open-field policy, no maze training", policy="runs/wormgym/es_cmd_curr/theta_final.npy", maze="corridor", seeds=[50000], kw=dict(), episode_s=90.0,
-         note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 1.00."),
     dict(id="tmaze_right_goal", title="T-maze, food on the RIGHT: enters left first, then corrects by reversing", policy="runs/wormgym/h5/tmaze_odor_only/theta_final.npy", maze="tmaze", seeds=None, goal_side=1, kw=dict(), episode_s=90.0,
          note="With temporal sensing only, the two arms are indistinguishable at the junction; 'go one way, reverse if it gets worse' is the learned strategy. Reach 1.00, but the right goal costs extra time."),
     dict(id="tmaze_left_goal", title="T-maze, food on the LEFT", policy="runs/wormgym/h5/tmaze_odor_only/theta_final.npy", maze="tmaze", seeds=None, goal_side=-1, kw=dict(), episode_s=60.0,
          note="Same policy; the ventral (left) deep bend takes the corner directly."),
+    dict(id="corridor_L", title="L-corridor (left turn): open-field policy, no maze training", policy="runs/wormgym/es_cmd_curr/theta_final.npy", maze="corridor", seeds=[50000], kw=dict(), episode_s=90.0,
+         note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 1.00."),
     dict(id="corridor_R_dorsal", title="Right-turn corridor: learnable only with dorsal deep bends (ADR-017)", policy="runs/wormgym/h5/smddir/corridor_R/theta_final.npy", maze="corridor_R", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=90.0,
          note="With ventral-only bends every policy scored 0/32 here. Under the SMDD/SMDV-directed bend rule the agent learns the right corner (reach 1.00)."),
+    dict(dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
+         note="Whitelisted stimulation of AVB/AVA/SMDD/SMDV/RIV only. Reach 0.988 over 256 random starts, median 16.5 s."),
 ]
 def pick_seed(env, th, side):
     for sd in range(80000, 80040):
