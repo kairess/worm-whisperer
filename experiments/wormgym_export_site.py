@@ -13,7 +13,7 @@ SCENES = [
          note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 1.00."),
     dict(id="corridor_R_dorsal", title="Right-turn corridor: learnable only with dorsal deep bends (ADR-017)", policy="runs/wormgym/h5/smddir/corridor_R/theta_final.npy", maze="corridor_R", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=90.0,
          note="With ventral-only bends every policy scored 0/32 here. Under the SMDD/SMDV-directed bend rule the agent learns the right corner (reach 1.00)."),
-    dict(dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
+    dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
          note="Whitelisted stimulation of AVB/AVA/SMDD/SMDV/RIV only. Reach 0.988 over 256 random starts, median 16.5 s."),
 ]
 def pick_seed(env, th, side):
