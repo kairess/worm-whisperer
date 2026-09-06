@@ -18,6 +18,7 @@
 \linenumbers
 \onehalfspacing
 \captionsetup{font=small,labelfont=bf}
+\renewcommand{\arraystretch}{1.15}
 \graphicspath{{figures/}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcommand{\Ce}{\textit{C.~elegans}}
@@ -140,7 +141,8 @@ The author declares no competing interests.
 \caption{\textbf{Pre-registered hypotheses and verdicts.} $n = 256$ episodes unless stated.}
 \label{tab1}
 \small
-\begin{tabular}{L{1.2cm} L{4.2cm} L{3.4cm} L{2.4cm} L{4.6cm}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{L{0.9cm} L{3.5cm} L{3.0cm} L{2.0cm} L{4.3cm}}
 \toprule
 ID & Hypothesis & Criterion & Verdict & Key numbers \\
 \midrule
@@ -165,7 +167,7 @@ E5/E7 & Real wiring matters & shuffled $<$ real $- 0.5$ & \checkmark{} (gap junc
 \caption{\textbf{Reach rates with Wilson 95\% confidence intervals} ($n = 256$, 2.5 mm unless stated). Rows with equal counts share an interval.}
 \label{tab2}
 \small
-\begin{tabular}{L{7.2cm} L{3.6cm} L{5cm}}
+\begin{tabular}{L{6.4cm} L{3.4cm} L{4.8cm}}
 \toprule
 Condition & Reach & 95\% CI \\
 \midrule
@@ -229,6 +231,7 @@ Retrained without RIV & 0.191 & 0.148--0.244 \\
 \end{figure}
 
 % ---------------------------------------------------------------- References
+\raggedright
 \begin{thebibliography}{99}
 \bibitem{r1} Izquierdo EJ, Beer RD. Connecting a connectome to behavior: an ensemble of neuroanatomical models of \textit{C. elegans} klinotaxis. PLoS Comput Biol. 2013;9(2):e1002890. doi:10.1371/journal.pcbi.1002890
 \bibitem{r2} Randi F, Sharma AK, Dvali S, Leifer AM. Neural signal propagation atlas of \textit{Caenorhabditis elegans}. Nature. 2023;623(7986):406--414. doi:10.1038/s41586-023-06683-4
