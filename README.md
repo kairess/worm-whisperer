@@ -46,7 +46,7 @@ Every hypothesis was pre-registered with its judgement criterion before training
           ──► 2D viscoelastic rod on agar with wall contact ──► trajectory, odour, reward
 ```
 
-Training uses OpenAI-ES on a GPU batch simulator (`worm/env/batch.py`, hundreds of worms per rollout, ~6 episodes/s at B = 256). Evaluation is always a fresh set of 128–256 random starts on the pre-registered protocol.
+Headline reach rates and arm choices were re-checked at the fine integration step (dt 0.05 ms, float64) on the same starts and are unchanged; maze transit times are 25 % longer at the fine step (`docs/PAPER_OUTLINE.md` §7, E8). Training uses OpenAI-ES on a GPU batch simulator (`worm/env/batch.py`, hundreds of worms per rollout, ~6 episodes/s at B = 256). Evaluation is always a fresh set of 128–256 random starts on the pre-registered protocol.
 
 ## Quick start
 

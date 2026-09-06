@@ -18,8 +18,10 @@ CASES = {
     "ADR017_real_2.5mm": dict(theta="runs/wormgym/h5/smddir/flat_far/theta_final.npy", kw=dict(src_dist=2.5, omega_smd_dir=True), reported=0.871),
     "tmaze_left_first": dict(theta="runs/wormgym/h5/smddir/tmaze/theta_final.npy", kw=dict(omega_smd_dir=True, episode_s=120.0, touch_obs=True), maze="tmaze", reported=1.0),
 }
-n = int(sys.argv[1]) if len(sys.argv) > 1 else 128; seeds = list(range(10000, 10000 + n)); res = {}
+n = int(sys.argv[1]) if len(sys.argv) > 1 else 128; only = sys.argv[2].split(",") if len(sys.argv) > 2 else list(CASES); seeds = list(range(10000, 10000 + n))
+JS = "runs/wormgym/paper/precision_check.json"; res = json.load(open(JS)) if os.path.exists(JS) else {}
 for name, c in CASES.items():
+    if name not in only: continue
     kw = dict(c["kw"])
     if c.get("maze"):
         mz = MAZES[c["maze"]](width=0.3); kw.update(walls=mz["walls"], starts=mz["starts"], goals=mz["goals"])
@@ -31,15 +33,19 @@ for name, c in CASES.items():
         r = {"reach": float(reached.mean()), "wilson": wilson(int(reached.sum()), n), "t_reach_median_s": None if t_reach is None else float(t_reach),
              "dist_final_mean": float(np.asarray(out["dist"]).mean()), "sec": time.time() - t0}
         if c.get("maze"):
-            H = np.asarray(out["head"]); first = []
-            for b in range(n):
-                f = None
-                for t in range(H.shape[1]):
-                    if abs(H[b, t, 0]) > 1.5 and abs(H[b, t, 1]) < 0.3: f = np.sign(H[b, t, 0]); break
-                first.append(f)
-            dec = [f for f in first if f is not None]; r["arm_decided"] = len(dec) / n; r["left_first"] = float(np.mean([f < 0 for f in dec])) if dec else None
+            H = np.asarray(out["head"])
+            for thr, key in ((0.6, "first_entry_0.6"), (1.5, "deep_entry_1.5")):      # 0.6: 첫 진입 팔(교차점 폭 0.3 의 두 배 바깥); 1.5: 깊이 들어간 팔(목표 팔과 거의 같음)
+                first = []
+                for b in range(n):
+                    f = None
+                    for t in range(H.shape[1]):
+                        if abs(H[b, t, 0]) > thr and abs(H[b, t, 1]) < 0.3: f = np.sign(H[b, t, 0]); break
+                    first.append(f)
+                dec = [f for f in first if f is not None]; r[key + "_decided"] = len(dec) / n; r[key + "_left"] = float(np.mean([f < 0 for f in dec])) if dec else None
+            r["goal_left_frac"] = float((np.asarray(out["src"])[:, 0] < 0).mean())
         res[name][tag] = r; print(name, tag, json.dumps(r), flush=True)
     a, b = res[name]["coarse_0.25ms_f32"], res[name]["fine_0.05ms_f64"]; lo, hi = a["wilson"]
-    res[name]["verdict"] = "KEEP" if (lo <= b["reach"] <= hi and abs(a["reach"] - b["reach"]) <= 0.10) else "REPLACE"
+    res[name]["verdict"] = "KEEP" if (lo - 1e-9 <= b["reach"] <= hi + 1e-9 and abs(a["reach"] - b["reach"]) <= 0.10) else "REPLACE"   # 1e-9: 도달률 1.0 에서 Wilson 상한 0.999… 부동소수 문제
+    if c.get("maze"): res[name]["verdict_left_first"] = "KEEP" if abs(a["first_entry_0.6_left"] - b["first_entry_0.6_left"]) <= 0.10 else "REPLACE"
+    json.dump(res, open(JS, "w"), indent=1)
     print(name, "verdict", res[name]["verdict"], f"coarse {a['reach']:.3f} CI [{lo:.3f},{hi:.3f}] fine {b['reach']:.3f}", flush=True)
-json.dump(res, open("runs/wormgym/paper/precision_check.json", "w"), indent=1)
