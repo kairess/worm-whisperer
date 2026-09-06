@@ -6,13 +6,13 @@ from worm.env.mazes import MAZES
 CH = ["AVB", "AVA", "SMDD", "SMDV", "RIV"]
 SCENES = [
     dict(id="tmaze_right_goal", title="T-maze, food on the RIGHT: enters left first, then corrects by reversing", policy="runs/wormgym/h5/tmaze_odor_only/theta_final.npy", maze="tmaze", seeds=None, goal_side=1, kw=dict(), episode_s=90.0,
-         note="With temporal sensing only, the two arms are indistinguishable at the junction; 'go one way, reverse if it gets worse' is the learned strategy. Reach 1.00, but the right goal costs extra time."),
+         note="With temporal sensing only, the two arms are indistinguishable at the junction; 'go one way, reverse if it gets worse' is the learned strategy. Reach 1.00 over 128 jittered starts; the right goal costs 5-10 s extra."),
     dict(id="tmaze_left_goal", title="T-maze, food on the LEFT", policy="runs/wormgym/h5/tmaze_odor_only/theta_final.npy", maze="tmaze", seeds=None, goal_side=-1, kw=dict(), episode_s=60.0,
          note="Same policy; the ventral (left) deep bend takes the corner directly."),
     dict(id="corridor_L", title="L-corridor (left turn): open-field policy, no maze training", policy="runs/wormgym/es_cmd_curr/theta_final.npy", maze="corridor", seeds=[50000], kw=dict(), episode_s=90.0,
-         note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 1.00."),
+         note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 0.97-1.00 over 32 in-corridor jittered starts per width."),
     dict(id="corridor_R_dorsal", title="Right-turn corridor: learnable only with dorsal deep bends (ADR-017)", policy="runs/wormgym/h5/smddir/corridor_R/theta_final.npy", maze="corridor_R", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=90.0,
-         note="With ventral-only bends every policy scored 0/32 here. Under the SMDD/SMDV-directed bend rule the agent learns the right corner (reach 1.00)."),
+         note="With ventral-only bends policies score 0-6 % here (32 jittered starts per width). Under the SMDD/SMDV-directed bend rule the agent learns the right corner (0.97-1.00)."),
     dict(id="grid_best", title="3x3 grid maze: two left and two right turns (best individual, fixed start)", policy="runs/wormgym/h5/smddir/grid_fromR/best.npy", maze="grid", seeds=[50000], jitter=1.0, n_try=96, kw=dict(omega_smd_dir=True), episode_s=150.0,
          note="The only policy that solved the grid: a single best individual from training that started from the right-corridor policy. The fixed-start run is sensitive to floating-point details and most jittered in-corridor starts fail, so it is an open-loop sequence rather than a robust strategy; this recording is one of the successful jittered starts (see E10 in docs/PAPER_OUTLINE.md for the success rate). Shown as an existence proof of a two-handed repertoire (left turns via ventral bends, right turns via dorsal bends)."),
     dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
