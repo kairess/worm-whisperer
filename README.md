@@ -20,12 +20,13 @@ Every hypothesis was pre-registered with its judgement criterion before training
 |---|---|---|
 | Can the wiring do chemotaxis when only command/steering interneurons (AVB, AVA, SMDD, SMDV, RIV) are stimulated? | ✓ | reach 0.914 within 40 s at 2.5 mm; random 0.04 |
 | … when only sensory neurons (ASE, AWC, AWA, ASK, ASH, PLM, ALM, AVM) are stimulated? | ✗ | 0.109 ≈ chance 0.125 — the sensory→command step is silent in this model (also with static stimulation) |
-| Does learning rediscover the pirouette rule? | ✓ (rule) / ✗ (sufficiency) | falling C → reverse + omega, rising → run (ρ = −1.00); reversal-onset rate falls monotonically with dC/dt as in Pierce-Shimomura 1999; but reversal + omega alone cannot navigate (0.05) |
-| What is the minimal circuit? | | reversal (AVA) + deep bend (RIV) + steering (SMD): ablating any one drops reach to 0.07–0.27; retraining without one fails |
+| Does learning rediscover the pirouette rule? | ✓ (rule) / △ (sufficiency) | falling C → reverse + omega, rising → run (ρ = −1.00 in 2 of 3 seeds); reversal-onset rate falls monotonically with dC/dt as in Pierce-Shimomura 1999. Reversal + omega alone: 2 seeds fail (0.05–0.11), 1 seed finds a bend-always strategy that reaches 0.328 at 2.5 mm (full circuit 0.914) |
+| What is the minimal circuit? | | reversal (AVA) + deep bend (RIV) + steering (SMD): ablating any one drops the trained policy to 0.07–0.27; retraining without RIV fails (0.19), without SMD reaches at most 0.33 |
 | Is a sleep neuron (RIS) needed to stop? | ✗ | never used; the agent stops by withdrawing command drive |
+| Does the actual wiring matter when command neurons are stimulated directly? | ✓ | shuffled wiring (same weights, counts and signs): 0.141 after retraining, 0.023 for the transferred policy, vs 0.871 for the real wiring — deep-bend pulses almost never fire in the shuffled network |
 | How are corners taken in a corridor four body-widths wide? | | only by a deep bend pressed against the wall; head steering alone 0/32. **The bend's dorsal/ventral direction is the turn direction.** |
 | Ventral-only bends (the default omega turn)? | | T-maze: enters the left arm 128/128; right-turn corridor 0/32; 3×3 grid unsolvable |
-| Let SMDD/SMDV set the bend direction (as reported in real worms)? | ✓ (ADR-017) | right-turn corridor becomes learnable (1.00) — but the policy becomes one-handed |
+| Let SMDD/SMDV set the bend direction (as reported in real worms)? | ✓ (ADR-017) | right-turn corridor becomes learnable (1.00) — but the policy becomes one-handed; robust across corridor widths 0.25–0.35 mm |
 | Can the worm pick the correct arm at a T-junction? | | With temporal sensing only: impossible in principle (both arms smell the same at the junction) → the learned strategy is *go left first, reverse if it gets worse* (reach 1.00, right goal costs 7–38 s). With a left/right concentration difference: bend direction follows the source in 73 % of pulses (62 % without) |
 | Why does a correctly aimed right entry still abort? | | a wall stall reads as "concentration stopped rising" and triggers the reverse + ventral-bend reflex — the same reflex that takes corners. Gating it off removes cornering entirely |
 
@@ -121,4 +122,4 @@ runs/            outputs, not in git
 
 ## Status
 
-Part 1 closed 2026-09-03; Worm Gym and maze navigation 2026-09-03…06. Pre-submission experiments (seed replication, width sensitivity, wiring-shuffle control) are running; see `docs/PAPER_OUTLINE.md` §3. Developed with Claude Code; session transcripts in `history/`.
+Part 1 closed 2026-09-03; Worm Gym and maze navigation 2026-09-03…06. Pre-submission experiments E1–E5 (junction mechanism, seed replication, width sensitivity, literature comparison, wiring-shuffle control) are complete; see `docs/PAPER_OUTLINE.md` §3 and §6. Developed with Claude Code; session transcripts in `history/`.
