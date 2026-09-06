@@ -106,6 +106,7 @@ runs/            outputs, not in git
 | Document | Content |
 |---|---|
 | [docs/PLAN_WORMGYM.md](docs/PLAN_WORMGYM.md) | Worm Gym: pre-registered hypotheses H1–H5-9, all verdicts, mechanisms, literature comparison |
+| [paper/main.tex](paper/main.tex) · [paper/main.pdf](paper/main.pdf) | Manuscript (PLOS Computational Biology format, LaTeX; Markdown source in [docs/PAPER_DRAFT.md](docs/PAPER_DRAFT.md)) |
 | [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | Paper claims, figures, pre-registered evidence experiments E1–E9 with verdicts and 95 % CIs |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADR-001 … ADR-017 |
 | [docs/RESULTS_PHASE1.md](docs/RESULTS_PHASE1.md) | JAX re-implementation, signal-propagation atlas, inhibition (negative) |

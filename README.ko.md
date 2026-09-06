@@ -109,6 +109,7 @@ runs/            산출물, git 제외
 | 문서 | 내용 |
 |------|------|
 | [docs/PLAN_WORMGYM.md](docs/PLAN_WORMGYM.md) | Worm Gym: 사전 등록 가설 H1–H5-9, 판정 전부, 기전, 문헌 대조 |
+| [paper/main.tex](paper/main.tex) · [paper/main.pdf](paper/main.pdf) | 논문 원고 (PLOS Computational Biology 형식, LaTeX; Markdown 원본 [docs/PAPER_DRAFT.md](docs/PAPER_DRAFT.md)) |
 | [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | 논문 주장·그림·사전 등록 근거 실험 E1–E9 (판정, 95 % CI) |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADR-001 … ADR-017 |
 | [docs/RESULTS_PHASE1.md](docs/RESULTS_PHASE1.md) | JAX 재구현, 신호전파 아틀라스, 억제(부정 결과) |
