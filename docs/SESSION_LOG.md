@@ -104,6 +104,11 @@
 - 정적 HTML/JS 만으로 시뮬레이터 녹화(50 ms 블록: 몸 좌표 25점, 판독 뉴런 ΔV 6개, 게이트, 자극 채널, 펄스 부호)를 캔버스로 재생. 장면 5개(`docs/assets/scenes/*.json`, `experiments/wormgym_export_site.py`): 평지 화학주성(좌우 정보 정책), L-통로, T-미로 오른쪽/왼쪽 목표(냄새만 학습 정책), 오른쪽 통로(ADR-017). 뉴런 패널은 자극 채널(주황)과 네트워크가 만든 막전위(파랑)를 구분해 표시. 하단에 판정 수치 카드 8개.
 - 배포: GitHub 저장소 Settings → Pages → Deploy from a branch → `main` / `/docs`. URL `https://kairess.github.io/worm-whisperer/`. `.nojekyll` 추가.
 
+## 3h. 2026-09-06 밤: 추가 근거 (자율 진행)
+- E6 H1 시드 1·2 재학습, E7 배선 대조군 확장(전체 뒤섞기 시드 1·2, 화학 시냅스만, 갭정션만) 진행 중 (`runs/wormgym/h5/run_evidence_chain_*.sh`, 산출물 `runs/wormgym/paper/`).
+- 모퉁이 통과 정량: 평지 정책 L-통로 64/64 통과 모두 직전 3 s 안에 후진 명령 + 굽힘 펄스 (1.00/1.00).
+- 논문 그림 초안 fig1–6 (`docs/figures/`, `experiments/paper_figures.py`). 핵심 도달률의 Wilson 95 % 신뢰구간을 PAPER_OUTLINE 에 추가.
+
 ## 4. 미해결 과제 (우선순위)
 0. Worm Gym 후속 (PLAN_WORMGYM 6·8절): 좌우 기울기 감각(머리 흔들기 표본, 0.1 s 관측 또는 직접 관측)으로 교차점 방향 선택·풍향계 재시험; GRU 기억; 벽 접촉 추진 보행(Park 2008); direct 모드 연속 행동으로 H3 시간 비용 분리; AVB 를 끌 수 없는 과제로 RIS 시험; PPO.
 1. ~~억제 재현과 감각→명령 선택(클래스별 적합)~~ → 2026-09-03 종결(부정 결과, RESULTS_PHASE1 7.3–7.4). 감각→명령 방향 선택이 필요하면 시냅스 파라미터가 아닌 층(감각 뉴런 극성 가정, 운동층 게이트 규칙)에서 다시 설계.
