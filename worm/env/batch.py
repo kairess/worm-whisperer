@@ -151,7 +151,7 @@ class BatchWormEnv:
                     "dwell_frac": (trace[1] < self.reach_r).mean(), "obs": trace[4], "heading": trace[5], "omega_sign": trace[6], "body": trace[7]}   # full_trace 면 body = (blk_body, blk_dv, blk_gates)
         return jax.vmap(episode)
 
-    def rollout(self, thetas, seeds, mask=None, start_jitter=0.0):
+    def rollout(self, thetas, seeds, mask=None, start_jitter=0.0, poses=None):
         """thetas (B, n_params), seeds (B,) int → dict of (B, ...) numpy. 초기 조건은 WormChemEnv.reset(seed) 와 같은 난수 순서 (heading, 소스 각).
         mask: (n_act,) 채널 절제 마스크 (0 = 그 채널 자극 금지), 기본 전부 1."""
         heads, angs, sxy, gxy = [], [], [], []
@@ -160,6 +160,7 @@ class BatchWormEnv:
             if self.starts is not None:
                 st = self.starts[rng.integers(len(self.starts))]; sx, sy = st[0], st[1]; h = st[2] if len(st) > 2 and not np.isnan(st[2]) else h
                 if start_jitter > 0: sx += rng.normal(0, start_jitter * 0.1); sy += rng.normal(0, start_jitter * 0.1); h += rng.normal(0, start_jitter * np.deg2rad(10))   # 시작 흔들기: 위치 ±0.1 mm·jitter, 방향 ±10°·jitter
+            if poses is not None: sx, sy, h = float(poses[len(heads)][0]), float(poses[len(heads)][1]), float(poses[len(heads)][2])   # 에피소드별 시작 자세 지정 (E10: 통로 안 검증된 흔들림)
             if self.goals is not None: g = tuple(self.goals[rng.integers(len(self.goals))])
             heads.append(h); angs.append(a_); sxy.append((sx, sy)); gxy.append(g)
         m = jnp.ones(self.n_act, self.dtype) if mask is None else jnp.asarray(mask, self.dtype)

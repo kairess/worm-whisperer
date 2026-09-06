@@ -14,7 +14,7 @@ SCENES = [
     dict(id="corridor_R_dorsal", title="Right-turn corridor: learnable only with dorsal deep bends (ADR-017)", policy="runs/wormgym/h5/smddir/corridor_R/theta_final.npy", maze="corridor_R", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=90.0,
          note="With ventral-only bends every policy scored 0/32 here. Under the SMDD/SMDV-directed bend rule the agent learns the right corner (reach 1.00)."),
     dict(id="grid_best", title="3x3 grid maze: two left and two right turns (best individual, fixed start)", policy="runs/wormgym/h5/smddir/grid_fromR/best.npy", maze="grid", seeds=[50000], jitter=1.0, n_try=96, kw=dict(omega_smd_dir=True), episode_s=150.0,
-         note="The only policy that solved the grid: a single best individual from training that started from the right-corridor policy. It succeeds in only about 5 % of starts jittered by 0.1 mm / 10 degrees (and the fixed-start run is itself sensitive to floating-point details), so it is an open-loop sequence rather than a robust strategy; this recording is one of the successful jittered starts. Shown as an existence proof of a two-handed repertoire (left turns via ventral bends, right turns via dorsal bends)."),
+         note="The only policy that solved the grid: a single best individual from training that started from the right-corridor policy. The fixed-start run is sensitive to floating-point details and most jittered in-corridor starts fail, so it is an open-loop sequence rather than a robust strategy; this recording is one of the successful jittered starts (see E10 in docs/PAPER_OUTLINE.md for the success rate). Shown as an existence proof of a two-handed repertoire (left turns via ventral bends, right turns via dorsal bends)."),
     dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
          note="Whitelisted stimulation of AVB/AVA/SMDD/SMDV/RIV only. Reach 0.988 over 256 random starts, median 16.5 s."),
 ]
@@ -26,9 +26,11 @@ def export(sc):
     kw = dict(sc["kw"]); mz = MAZES[sc["maze"]](width=0.3) if sc["maze"] else None
     env = BatchWormEnv(episode_s=sc["episode_s"], touch_obs=bool(mz), full_trace=True, **({"walls": mz["walls"], "starts": mz["starts"], "goals": mz["goals"]} if mz else {}), **kw)
     th = fit_theta(np.load(sc["policy"]), env); seeds = sc["seeds"] or [pick_seed(env, th, sc["goal_side"])]
-    jit = sc.get("jitter", 0.0)
-    if jit: seeds = list(range(seeds[0], seeds[0] + sc.get("n_try", 64)))                         # 흔들린 시작 여러 개를 돌려 도달한 첫 에피소드를 고른다
-    out = env.rollout(np.stack([th] * len(seeds)), seeds, start_jitter=jit); b = 0
+    jit = sc.get("jitter", 0.0); poses = None
+    if jit:                                                                                         # 통로 안에서 검증된 흔들린 시작 여러 개를 돌려 도달한 첫 에피소드를 고른다
+        from worm.env.jitter import valid_poses
+        seeds = list(range(seeds[0], seeds[0] + sc.get("n_try", 64))); poses = valid_poses(mz, len(seeds), seed=7)
+    out = env.rollout(np.stack([th] * len(seeds)), seeds, poses=poses); b = 0
     if jit:
         hits = np.where(np.asarray(out["reached"]))[0]; print(sc["id"], "jittered starts reached", len(hits), "/", len(seeds), flush=True)
         if len(hits): b = int(hits[0])
