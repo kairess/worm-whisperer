@@ -40,14 +40,14 @@ axes[0].legend(frameon=False, fontsize=8, loc="upper left"); fig.tight_layout(re
 rows = [("ventral-only bends (ADR-016)", 64, 0, 1.00, 0.00), ("dorsal swap (DOMEGA, control)", 33, 31, None, None), ("SMDD/SMDV-directed bends, right-trained (ADR-017)", None, None, 0.00, 1.00)]
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
 ax[0].bar(["ventral-only\nfirst arm L", "ventral-only\nfirst arm R", "dorsal swap\narm L", "dorsal swap\narm R"], [64, 0, 33, 31], color=["#c44e52", "#c44e52", "#dd8452", "#dd8452"]); ax[0].set_ylabel("episodes (n=64)"); ax[0].set_title("A  T-maze arm reached vs bend side")
-# E3 width sensitivity (paper/width_sensitivity.txt, 32 episodes each): ventral-only policy L 1.00 / R 0.00, dorsal-trained policy R 1.00 / L 0.00 at every width
+# E10 (paper/jitter_eval.json): validated in-corridor start jitter, 32 episodes per condition
 w = [0.25, 0.30, 0.35]; xx = np.arange(3); bw = 0.2
-series = [("ventral-only policy, left corridor", [1, 1, 1], "#c44e52", "//"), ("ventral-only policy, right corridor", [0, 0, 0], "#c44e52", ""),
-          ("dorsal-trained policy, right corridor", [1, 1, 1], "#dd8452", "//"), ("dorsal-trained policy, left corridor", [0, 0, 0], "#dd8452", "")]
+series = [("ventral-only policy, left corridor", [0.969, 1.0, 1.0], "#c44e52", "//"), ("ventral-only policy, right corridor", [0.0, 0.0, 0.0625], "#c44e52", ""),
+          ("dorsal-trained policy, right corridor", [0.969, 0.969, 1.0], "#dd8452", "//"), ("dorsal-trained policy, left corridor", [0.031, 0.0625, 0.0625], "#dd8452", "")]
 for k, (lab, v, col, hatch) in enumerate(series):
     ax[1].bar(xx + (k - 1.5) * bw, v, bw, color=col, hatch=hatch, edgecolor="k", linewidth=0.5, label=lab)
     for x, y in zip(xx + (k - 1.5) * bw, v): ax[1].text(x, y + 0.02, f"{y:.2f}", ha="center", va="bottom", fontsize=7)
-ax[1].set_xticks(xx); ax[1].set_xticklabels([f"{x:.2f}" for x in w]); ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate (n=32)"); ax[1].set_ylim(0, 1.15); ax[1].legend(frameon=False, fontsize=8, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.22)); ax[1].set_title("B  handedness is robust to corridor width")
+ax[1].set_xticks(xx); ax[1].set_xticklabels([f"{x:.2f}" for x in w]); ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate (n=32 jittered starts)"); ax[1].set_ylim(0, 1.15); ax[1].legend(frameon=False, fontsize=8, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.22)); ax[1].set_title("B  handedness is robust to corridor width")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig5_bend_direction.png", dpi=300); plt.close(fig)
 # ---- fig6: lateral info + wiring control
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
