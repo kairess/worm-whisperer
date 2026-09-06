@@ -52,8 +52,48 @@ We pre-registered each hypothesis with its judgement criterion before training a
 \subsection*{The agent's only lever is current into whitelisted interneurons}
 Everything downstream of the stimulated neurons is fixed (Fig~\ref{fig1}). Every 0.5~s a small neural-network policy maps the recent history of log odour concentration at the nose, and in maze tasks the wall contact of the head, to currents of 0--6~pA injected into the chosen neurons of the c302 network (302 neurons, 2,279 neuron-to-neuron chemical synapses, 1,084 gap junctions) with dynamics fitted to the signal-propagation atlas \cite{r2} (``Vfit'', Methods). The motor layer reads only five interneurons. Forward and backward locomotion are gated by AVB and AVA depolarisation \cite{r7}; the SMDD~$-$~SMDV difference steers the head; and a RIV depolarisation above threshold fires a travelling curvature pulse that produces an omega turn of about 170$^\circ$, which we call the deep bend \cite{r11}. Under the rule adopted for maze experiments, the pulse is dorsal when SMDD exceeds SMDV and ventral otherwise, as in the neural sequence of directed turning \cite{r11}; the earlier ventral-only rule serves as a control. The two rules are recorded as architecture decision records ADR-016 and ADR-017 (Methods). Policies were trained by evolution strategies with a near-source curriculum and evaluated on 128--256 fresh random starts. Hypothesis identifiers (H1, H5-3, \ldots) refer to Table~\ref{tab1}.
 
+\begin{table}[tbp]
+\centering
+\caption{\textbf{Pre-registered hypotheses and verdicts.} $n = 256$ episodes unless stated.}
+\label{tab1}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{L{0.9cm} L{3.5cm} L{3.0cm} L{2.0cm} L{4.3cm}}
+\toprule
+ID & Hypothesis & Criterion & Verdict & Key numbers \\
+\midrule
+H1 & Command/steering channels suffice for chemotaxis & reach $\geq 0.8$ at 2.5 mm, random $\leq 0.2$ & \checkmark{} (4 of 5 seeds) & 0.914 / 0.973 / 0.301 / 0.969 / 0.934; random 0.043 \\
+H1a & Sensory channels alone do not & not different from random & \checkmark & 0.109 vs 0.125 (1.5 mm) \\
+H2-1 & Policy rediscovers the pirouette rule (AVB, AVA, RIV only) & $\rho(\mathrm{d}C/\mathrm{d}t,\ \text{reverse}) < -0.8$ & \checkmark{} rule / $\times$ sufficiency & $\rho = -1.00$; reach 0.05--0.11 \\
+H2-2 & Weathervane steering with temporal sensing & steering sign = source side $> 0.7$ & $\times$ & 0.27 \\
+H3 & Command layer is a low-cost interface & $\geq 70\%$ of oracle & \checkmark{} reach / $\triangle$ time & 0.914 vs 0.895; 24 vs 16.5 s \\
+H4-1 & Deep bend dispensable on open ground & RIV ablation drop $< 0.1$ & $\times$ & $0.914 \to 0.066$; retrained without RIV 0.191 \\
+H4-2 & RIS used to stop & RIS drive $> 0.1$ & $\times$ & 0.0 \\
+H5-2 & Reversal, not bend, at corridor ends & AVA on frontal contact $\geq 0.6$ & $\times$ & corners taken by reversal \emph{and} bend (64/64) \\
+H5-3 & Multisensory order in T-maze & odour+touch $>$ odour $>$ touch & \checkmark{} (touch observation unnecessary) & trained odour+touch 1.00 $>$ untrained odour-only 0.49 $>$ touch-only 0.00; trained odour-only 1.00 ($n = 128$) \\
+H5-6 & Dorsal bends give arm choice & first entry = goal $> 0.7$ & $\times$ & 128/128 left \\
+H5-8 & Lateral information is used & bend direction = source side $> 0.6$ & \checkmark{} (open ground) & 0.73 vs 0.62 \\
+E5/E7 & Real wiring matters & shuffled $<$ real $- 0.5$ & \checkmark{} (gap junctions) & 0.202 vs 0.871; chemical-only 0.859, gap-junction-only 0.078 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{fig1_pipeline.png}
+\caption{\textbf{The pipeline and the whitelist principle.} Observation $\to$ policy $\to$ stimulation of whitelisted interneurons $\to$ fixed c302 connectome with fitted dynamics $\to$ literature motor layer $\to$ viscoelastic body in an odour field with walls.}
+\label{fig1}
+\end{figure}
+
 \subsection*{Five command and steering interneurons suffice for chemotaxis; sensory neurons do not}
 Stimulating only AVB, AVA, SMDD, SMDV and RIV was sufficient for chemotaxis (Fig~\ref{fig2}A). The trained policy reached a source 2.5~mm away within 40~s in 91.4\% of 256 trials (Wilson 95\% CI 0.873--0.943; median 24~s), against 4.3\% for a random policy and 0\% for a still worm; at 1.5~mm it reached 99.6\%. Four of five independent training seeds cleared the pre-registered criterion of 0.8 (0.914, 0.973, 0.969 and 0.934; mean of five $0.82 \pm 0.29$ s.d.). The remaining seed converged to a strategy that reversed on decline but never used the deep bend, reached 0.301, and stayed there after 100 further generations (0.324); we return to this local optimum below. An oracle controller that knew the source direction and steered the same body directly reached the source in 89.5\% of trials, fewer than the learned policy, though faster (median 16.5~s versus 24~s). The oracle is a hand-tuned baseline, so we conclude only that the interneuron interface costs nothing in reach rate, not that it is optimal. Learning failed without three ingredients that we record as negative results: a living cost and a terminal distance penalty (otherwise standing still is a local optimum), relative rather than absolute concentration observations, and the curriculum (direct training at 2.5~mm reached 8\% after 45 generations).
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{fig2_learning_and_rule.png}
+\caption{\textbf{Chemotaxis through command and steering interneurons.} (A) Reach rate of the training seeds over generations under the curriculum (stage 1 at 1.5 mm, stage 2 at 2.5 mm). (B) Policy sweep: stimulation of each channel as a function of the observed concentration change. (C) Reversal-onset rate by $\mathrm{d}C/\mathrm{d}t$ quintile (1 = falling); the dashed line is the overall rate. Compare Pierce-Shimomura et al.\ \cite{r9}.}
+\label{fig2}
+\end{figure}
 
 Stimulating sensory neurons instead of interneurons did not produce chemotaxis. With ASE, AWC, AWA, ASK, ASH, PLM, ALM and AVM as the only channels, the best policy reached a source 1.5~mm away in 10.9\% of trials (CI 0.077--0.154), against 12.5\% for a random policy (CI 0.090--0.171), and its learning curve stayed at the reward of a still worm for 80 generations. The policy had tried to exploit a sub-millivolt asymmetry of the touch circuit, with the sign opposite to the biological one. This behavioural failure matches two properties of the fitted network established when it was built (Methods): static sensory stimulation does not differentiate the forward and backward command states, and 83\% of the inhibitory responses in the atlas connect neuron pairs that have no one- or two-step synaptic path. The gap between the two conditions at 1.5~mm, 0.996 versus 0.109, is the contribution of the single missing step, sensory-to-command selection.
 
@@ -64,10 +104,31 @@ The rule alone was not sufficient. Restricting the channels to AVB, AVA and RIV,
 
 All three components were necessary (Fig~\ref{fig3}). Masking one channel of the trained policy at evaluation reduced the reach rate from 0.914 to 0.098 (AVA), 0.066 (RIV), 0.273 (SMDD and SMDV together), 0.434 (AVB) and 0.410 or 0.621 (SMDD or SMDV alone). Retraining without RIV reached 0.191 and retraining without steering 0.05, so the necessity is not an artefact of the particular policy. Our pre-registered prediction that the deep bend would be dispensable on open ground was therefore false: with temporal sensing only, chemotaxis by modulating the rate of reorientation (klinokinesis) requires a large reorientation. A further pre-registered hypothesis asked whether the sleep-active neuron RIS \cite{r17} would be recruited to stop at the source. It was not. When the task rewarded dwelling at the source, with or without a movement cost, the policy stopped by withdrawing command drive below the gate threshold and RIS stimulation stayed at zero; RIS can only matter when the forward drive is not under the agent's control.
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.8\textwidth]{fig3_minimal_circuit.png}
+\caption{\textbf{The minimal circuit.} (A) Reach rate at 2.5 mm ($n = 256$) after masking each channel of the trained policy. (B) Reach rate after retraining without RIV or without SMD steering (best of three seeds), with the sensory-only and random policies for comparison.}
+\label{fig3}
+\end{figure}
+
 \subsection*{In narrow corridors the direction of the deep bend is the direction of the turn}
 Corners were passed by one mechanism only: a deep bend pressed against the wall (Fig~\ref{fig4}). We added a wall potential to the body model and lattice mazes with corridors 0.3~mm wide, about four body widths. In corridors of this width the omega bend, whose free diameter is 0.34~mm, is blocked (reorientation $+2^\circ$ instead of $+170^\circ$) and forward speed halves (0.07--0.10 versus 0.15--0.18~mm/s). Yet the odour policy trained on open ground, placed in an L-shaped corridor without further training, passed the corner in 100\% of 128 episodes. Frame-by-frame traces showed the sequence stall $\to$ reversal $\to$ forward run with a deep-bend pulse pressed against the wall, after which the body slides around the corner. In a 64-episode subset analysed step by step, a reversal command and a bend pulse both occurred within the 3~s before every corner passage (64 of 64), for the open-ground policy and for a maze-trained policy alike. Head steering alone could not turn the corner: constant SMDD or SMDV bias with forward drive passed 0 of 32 corners, and masking RIV reduced T-maze completion to 0.
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{fig4_mazes.png}
+\caption{\textbf{Mazes.} Recorded trajectories of the open-ground policy in the L-corridor, of the maze-trained policy in the T-maze with food on the left and on the right, and of the right-turn-trained policy under the SMD-direction rule in the right-turn corridor. Dorsal and ventral deep-bend pulses are marked along the head path; the dashed circle is the goal radius.}
+\label{fig4}
+\end{figure}
+
 The wall converts a blocked omega turn into a slide along the open side, so the dorsal or ventral direction of the bend is the direction of the turn (Fig~\ref{fig5}). Under the ventral-only rule, policies passed left-turn corridors in 32 of 32 trials and right-turn corridors in 0 of 32, at corridor widths of 0.25, 0.30 and 0.35~mm, and entered the left (ventral) arm of a T-maze first in 128 of 128 trials regardless of where the food was. A $3\times3$ grid maze that requires two right turns was unsolvable in principle. Under the SMD-direction rule, which permits dorsal bends through whitelisted stimulation, retraining on the right-turn corridor succeeded (reach 1.00) but produced a one-handed policy that failed the left-turn corridor (0.00), and policies not trained on right turns kept turning left. The rule preserved open-ground chemotaxis (0.871, CI 0.824--0.907). The retrained open-ground policy used dorsal bends 0.77 of the time and ventral bends 0.11, the opposite of real animals, in which 24\% of sharp turns are dorsal \cite{r12}. The model has no dorsal--ventral cost asymmetry, so its preferred direction is set by initialisation; the ventral preference of real worms lies outside what this model can explain.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{fig5_bend_direction.png}
+\caption{\textbf{Bend direction is turn direction.} (A) First arm reached in the T-maze by the open-ground policy with ventral-only bends and with the bend direction swapped to dorsal ($n = 64$ each). (B) Reach in left- and right-turn corridors at widths 0.25--0.35 mm for the ventral-only policy and for the policy retrained on right turns under the SMD-direction rule ($n = 32$ each).}
+\label{fig5}
+\end{figure}
 
 \subsection*{At a T-junction temporal sensing cannot choose the arm, so the policy enters one arm and reverses when wrong}
 Policies trained in the T-maze reached the food in 100\% of trials and finished in the food arm in 100\%, but they never chose the arm at the junction. First entry was into the left arm in 128 of 128 trials under both bend rules, and food on the right cost 7--38~s more than food on the left across policies (22~s versus 40~s for the first maze-trained policy). The correction was not a discrete choice but repeated 2~s reversal bouts that carried the worm tail-first back through the junction and into the other arm. Wall-contact observations were unnecessary. Zeroing them at evaluation left reach and arm choice at 1.00 and shortened the median time from 40~s to 30~s; a policy trained with odour only performed identically (1.00), whereas the open-ground policy without maze training reached 0.49 and a policy trained with contact only converged to stillness (0.00). In this model the ``multisensory'' requirement of real maze navigation \cite{r3} is met by odour plus wall physics, not by wall sensing.
@@ -79,10 +140,42 @@ The stall reflex that takes corners also aborts a correctly aimed right entry. R
 \subsection*{Lateral concentration information selects the bend direction}
 When the observation included the log-concentration difference between two points 0.1~mm to the left and right of the nose, an idealisation of the head-swing sampling of real animals, the policy used it (Fig~\ref{fig6}A). On open ground it reached the source in 98.8\% of trials with a median of 16.5~s, the speed of the oracle. It used both bend directions (2,180 dorsal and 3,251 ventral pulses in 128 episodes), and the realised direction of the deep bend matched the side of the source in 0.73 of pulses, against 0.62 for the same rule without lateral information (chance 0.5). Because pulses within an episode are not independent, we recomputed the statistic per episode: $0.73 \pm 0.08$ (all 128 episodes above 0.5) versus $0.61 \pm 0.18$ (88 above, 35 below, 5 at 0.5), Mann--Whitney $p = 2.6 \times 10^{-8}$, Cohen's $d = 0.85$. This reproduces, in the model, the sensory-guided choice of dorsal versus ventral turns reported for real animals \cite{r11}. In the T-maze, however, the lateral-information policy still entered the left arm first in 128 of 128 trials. At the junction it fired dorsal pulses toward a right-hand goal in 0.80 of cases, but each entry was aborted by the stall reflex described above; the maze-trained version abandoned dorsal pulses and instead reduced the cost of a right-hand goal to 7~s.
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{fig6_lateral_and_wiring.png}
+\caption{\textbf{Lateral information and wiring controls.} (A) Per-episode probability that the deep bend is toward the source, with and without lateral information (mean $\pm$ s.d., 128 episodes). (B) Reach rates for real, fully shuffled, chemical-only shuffled and gap-junction-only shuffled wiring, retrained and with the real-wiring policy transferred.}
+\label{fig6}
+\end{figure}
+
 \subsection*{The real wiring outperforms shuffled wiring, through its gap junctions}
 The wiring contributed even though the command neurons were stimulated directly (Fig~\ref{fig6}B). We shuffled the postsynaptic targets of all neuron-to-neuron chemical synapse entries (3,364 after sign splitting, Methods) and one end of all 1,084 gap junctions, preserving every weight, count and sign, and retrained under the same curriculum and rules. Three shuffled networks reached 0.141, 0.145 and 0.320 (mean 0.202) against 0.871 for the real wiring, and the real-wiring policy transferred to the shuffled networks reached 0.023--0.055. The deficit tracked the deep bend: in 128 evaluation episodes the real network fired 6,960 pulses, the three shuffled networks 0--38, 670 and 3,599, in the same order as their reach rates. Direct stimulation raises the potential of the stimulated neuron regardless of wiring, so the wiring's contribution lies in how the stimulus spreads to the readout neurons SMD and RIV.
 
 In the fitted dynamics that contribution was carried by the gap-junction layer. Shuffling only the chemical synapses left performance intact (retrained 0.859, transferred policy 0.914, 6,493 pulses), whereas shuffling only the gap junctions collapsed it (0.078 and 0.125, 116 pulses); the confidence intervals of the two layer-specific controls do not overlap (Table~\ref{tab2}). The fit to the atlas had scaled chemical conductances down by more than an order of magnitude while leaving gap junctions near unity (Methods), so the neuron-to-neuron chemical layer is nearly silent in this model by construction. The defensible statement is therefore about the atlas-fitted dynamics: in them, the stimulus reaches SMD and RIV through the gap-junction network.
+
+\begin{table}[tbp]
+\centering
+\caption{\textbf{Reach rates with Wilson 95\% confidence intervals} ($n = 256$, 2.5 mm unless stated). Rows with equal counts share an interval.}
+\label{tab2}
+\small
+\begin{tabular}{L{6.4cm} L{3.4cm} L{4.8cm}}
+\toprule
+Condition & Reach & 95\% CI \\
+\midrule
+Full circuit (seed 0) & 0.914 & 0.873--0.943 \\
+Full circuit (seeds 1--4) & 0.973 / 0.301 / 0.969 / 0.934 & 0.945--0.987 / 0.248--0.360 / 0.940--0.984 / 0.896--0.958 \\
+Sensory channels only, 1.5 mm & 0.109 & 0.077--0.154 \\
+Random policy, 1.5 mm / 2.5 mm & 0.125 / 0.043 & 0.090--0.171 / 0.024--0.075 \\
+Real wiring, SMD-direction rule & 0.871 & 0.824--0.907 \\
+All connections shuffled, retrained (3 seeds) & 0.141 / 0.145 / 0.320 & mean 0.202 \\
+All shuffled, transferred policy (3 seeds) & 0.023 / 0.055 / 0.047 & \\
+Chemical synapses shuffled, retrained / transferred & 0.859 / 0.914 & 0.812--0.896 / 0.873--0.943 \\
+Gap junctions shuffled, retrained / transferred & 0.078 / 0.125 & 0.051--0.117 / 0.090--0.171 \\
+Lateral-information policy & 0.988 & 0.966--0.996 \\
+AVB/AVA/RIV only, bend-always seed & 0.328 & 0.274--0.388 \\
+Retrained without RIV & 0.191 & 0.148--0.244 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection*{The reported numbers are robust to integration precision}
 All headline numbers held at the fine integration step required by our reporting rule. Headline values are those measured at the training step (0.25~ms, single precision) on 256 starts. On a common set of 128 starts, integrating at 0.05~ms in double precision gave reach rates of 0.914 (versus 0.938 at the coarse step) for the open-ground policy, 0.875 (versus 0.844) for the SMD-direction policy, and 1.00 with 128 of 128 left first entries under both settings for the maze-trained SMD-direction policy; only its maze transit time changed (median 26.5~$\to$~33.5~s). Wilson 95\% confidence intervals for the key comparisons are given in Table~\ref{tab2}.
@@ -134,101 +227,6 @@ This work received no specific funding.
 
 \section*{Competing interests}
 The author declares no competing interests.
-
-% ---------------------------------------------------------------- Tables
-\begin{table}[p]
-\centering
-\caption{\textbf{Pre-registered hypotheses and verdicts.} $n = 256$ episodes unless stated.}
-\label{tab1}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{L{0.9cm} L{3.5cm} L{3.0cm} L{2.0cm} L{4.3cm}}
-\toprule
-ID & Hypothesis & Criterion & Verdict & Key numbers \\
-\midrule
-H1 & Command/steering channels suffice for chemotaxis & reach $\geq 0.8$ at 2.5 mm, random $\leq 0.2$ & \checkmark{} (4 of 5 seeds) & 0.914 / 0.973 / 0.301 / 0.969 / 0.934; random 0.043 \\
-H1a & Sensory channels alone do not & not different from random & \checkmark & 0.109 vs 0.125 (1.5 mm) \\
-H2-1 & Policy rediscovers the pirouette rule (AVB, AVA, RIV only) & $\rho(\mathrm{d}C/\mathrm{d}t,\ \text{reverse}) < -0.8$ & \checkmark{} rule / $\times$ sufficiency & $\rho = -1.00$; reach 0.05--0.11 \\
-H2-2 & Weathervane steering with temporal sensing & steering sign = source side $> 0.7$ & $\times$ & 0.27 \\
-H3 & Command layer is a low-cost interface & $\geq 70\%$ of oracle & \checkmark{} reach / $\triangle$ time & 0.914 vs 0.895; 24 vs 16.5 s \\
-H4-1 & Deep bend dispensable on open ground & RIV ablation drop $< 0.1$ & $\times$ & $0.914 \to 0.066$; retrained without RIV 0.191 \\
-H4-2 & RIS used to stop & RIS drive $> 0.1$ & $\times$ & 0.0 \\
-H5-2 & Reversal, not bend, at corridor ends & AVA on frontal contact $\geq 0.6$ & $\times$ & corners taken by reversal \emph{and} bend (64/64) \\
-H5-3 & Multisensory order in T-maze & odour+touch $>$ odour $>$ touch & \checkmark{} (touch observation unnecessary) & trained odour+touch 1.00 $>$ untrained odour-only 0.49 $>$ touch-only 0.00; trained odour-only 1.00 ($n = 128$) \\
-H5-6 & Dorsal bends give arm choice & first entry = goal $> 0.7$ & $\times$ & 128/128 left \\
-H5-8 & Lateral information is used & bend direction = source side $> 0.6$ & \checkmark{} (open ground) & 0.73 vs 0.62 \\
-E5/E7 & Real wiring matters & shuffled $<$ real $- 0.5$ & \checkmark{} (gap junctions) & 0.202 vs 0.871; chemical-only 0.859, gap-junction-only 0.078 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[p]
-\centering
-\caption{\textbf{Reach rates with Wilson 95\% confidence intervals} ($n = 256$, 2.5 mm unless stated). Rows with equal counts share an interval.}
-\label{tab2}
-\small
-\begin{tabular}{L{6.4cm} L{3.4cm} L{4.8cm}}
-\toprule
-Condition & Reach & 95\% CI \\
-\midrule
-Full circuit (seed 0) & 0.914 & 0.873--0.943 \\
-Full circuit (seeds 1--4) & 0.973 / 0.301 / 0.969 / 0.934 & 0.945--0.987 / 0.248--0.360 / 0.940--0.984 / 0.896--0.958 \\
-Sensory channels only, 1.5 mm & 0.109 & 0.077--0.154 \\
-Random policy, 1.5 mm / 2.5 mm & 0.125 / 0.043 & 0.090--0.171 / 0.024--0.075 \\
-Real wiring, SMD-direction rule & 0.871 & 0.824--0.907 \\
-All connections shuffled, retrained (3 seeds) & 0.141 / 0.145 / 0.320 & mean 0.202 \\
-All shuffled, transferred policy (3 seeds) & 0.023 / 0.055 / 0.047 & \\
-Chemical synapses shuffled, retrained / transferred & 0.859 / 0.914 & 0.812--0.896 / 0.873--0.943 \\
-Gap junctions shuffled, retrained / transferred & 0.078 / 0.125 & 0.051--0.117 / 0.090--0.171 \\
-Lateral-information policy & 0.988 & 0.966--0.996 \\
-AVB/AVA/RIV only, bend-always seed & 0.328 & 0.274--0.388 \\
-Retrained without RIV & 0.191 & 0.148--0.244 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% ---------------------------------------------------------------- Figures
-\begin{figure}[p]
-\centering
-\includegraphics[width=\textwidth]{fig1_pipeline.png}
-\caption{\textbf{The pipeline and the whitelist principle.} Observation $\to$ policy $\to$ stimulation of whitelisted interneurons $\to$ fixed c302 connectome with fitted dynamics $\to$ literature motor layer $\to$ viscoelastic body in an odour field with walls.}
-\label{fig1}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-\includegraphics[width=\textwidth]{fig2_learning_and_rule.png}
-\caption{\textbf{Chemotaxis through command and steering interneurons.} (A) Reach rate of the training seeds over generations under the curriculum (stage 1 at 1.5 mm, stage 2 at 2.5 mm). (B) Policy sweep: stimulation of each channel as a function of the observed concentration change. (C) Reversal-onset rate by $\mathrm{d}C/\mathrm{d}t$ quintile (1 = falling); the dashed line is the overall rate. Compare Pierce-Shimomura et al.\ \cite{r9}.}
-\label{fig2}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-\includegraphics[width=0.8\textwidth]{fig3_minimal_circuit.png}
-\caption{\textbf{The minimal circuit.} (A) Reach rate at 2.5 mm ($n = 256$) after masking each channel of the trained policy. (B) Reach rate after retraining without RIV or without SMD steering (best of three seeds), with the sensory-only and random policies for comparison.}
-\label{fig3}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-\includegraphics[width=\textwidth]{fig4_mazes.png}
-\caption{\textbf{Mazes.} Recorded trajectories of the open-ground policy in the L-corridor, of the maze-trained policy in the T-maze with food on the left and on the right, and of the right-turn-trained policy under the SMD-direction rule in the right-turn corridor. Dorsal and ventral deep-bend pulses are marked along the head path; the dashed circle is the goal radius.}
-\label{fig4}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-\includegraphics[width=\textwidth]{fig5_bend_direction.png}
-\caption{\textbf{Bend direction is turn direction.} (A) First arm reached in the T-maze by the open-ground policy with ventral-only bends and with the bend direction swapped to dorsal ($n = 64$ each). (B) Reach in left- and right-turn corridors at widths 0.25--0.35 mm for the ventral-only policy and for the policy retrained on right turns under the SMD-direction rule ($n = 32$ each).}
-\label{fig5}
-\end{figure}
-
-\begin{figure}[p]
-\centering
-\includegraphics[width=\textwidth]{fig6_lateral_and_wiring.png}
-\caption{\textbf{Lateral information and wiring controls.} (A) Per-episode probability that the deep bend is toward the source, with and without lateral information (mean $\pm$ s.d., 128 episodes). (B) Reach rates for real, fully shuffled, chemical-only shuffled and gap-junction-only shuffled wiring, retrained and with the real-wiring policy transferred.}
-\label{fig6}
-\end{figure}
 
 % ---------------------------------------------------------------- References
 \raggedright
