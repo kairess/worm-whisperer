@@ -106,7 +106,7 @@ runs/            outputs, not in git
 | Document | Content |
 |---|---|
 | [docs/PLAN_WORMGYM.md](docs/PLAN_WORMGYM.md) | Worm Gym: pre-registered hypotheses H1–H5-9, all verdicts, mechanisms, literature comparison |
-| [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | Paper claims, figures, pre-submission experiments E1–E5 |
+| [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | Paper claims, figures, pre-registered evidence experiments E1–E9 with verdicts and 95 % CIs |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADR-001 … ADR-017 |
 | [docs/RESULTS_PHASE1.md](docs/RESULTS_PHASE1.md) | JAX re-implementation, signal-propagation atlas, inhibition (negative) |
 | [docs/RESULTS_PHASE2.md](docs/RESULTS_PHASE2.md) | Body coupling, search for an oscillator (negative) |
@@ -122,4 +122,4 @@ runs/            outputs, not in git
 
 ## Status
 
-Part 1 closed 2026-09-03; Worm Gym and maze navigation 2026-09-03…06. Pre-submission experiments E1–E5 (junction mechanism, seed replication, width sensitivity, literature comparison, wiring-shuffle control) are complete; see `docs/PAPER_OUTLINE.md` §3 and §6. Developed with Claude Code; session transcripts in `history/`.
+Part 1 closed 2026-09-03; Worm Gym and maze navigation 2026-09-03…06. Pre-registered evidence experiments E1–E9 are complete (junction mechanism, seed replication of the rule and of the headline reach rate, width sensitivity, literature comparison, wiring-shuffle controls including the chemical/gap-junction layer dissociation, integration-step re-check, episode-level statistics); see `docs/PAPER_OUTLINE.md` §3, §6 and §7. Developed with Claude Code; session transcripts in `history/`.

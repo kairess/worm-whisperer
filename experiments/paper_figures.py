@@ -46,7 +46,7 @@ ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate"); ax[1].s
 fig.tight_layout(); fig.savefig(f"{OUT}/fig5_bend_direction.png", dpi=160); plt.close(fig)
 # ---- fig6: lateral info + wiring control
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
-ax[0].bar(["temporal only\n(ADR-017)", "temporal + lateral\ndifference"], [0.61, 0.73], yerr=[0.18, 0.08], capsize=4, color=["#999", "#4c72b0"])   # E9 episode means ± sd (128 episodes); ax[0].axhline(0.5, color="#c44e52", ls="--", lw=0.8); ax[0].set_ylim(0.4, 0.8); ax[0].set_ylabel("P(bend side = source side)"); ax[0].set_title("A  lateral information selects the bend side")
+ax[0].bar(["temporal only\n(ADR-017)", "temporal + lateral\ndifference"], [0.61, 0.73], yerr=[0.18, 0.08], capsize=4, color=["#999", "#4c72b0"]); ax[0].axhline(0.5, color="#c44e52", ls="--", lw=0.8); ax[0].set_ylim(0.3, 0.9); ax[0].set_ylabel("P(bend side = source side)"); ax[0].set_title("A  lateral information selects the bend side")   # E9 episode means ± sd (128 episodes)
 # E5/E7 (paper/*_far/eval*.txt): retrained / transferred reach; full shuffle = 3 seeds (0.141, 0.145, 0.320 / 0.023, 0.055, 0.047)
 labels = ["real\nwiring", "all\nshuffled", "chemical\nonly", "gap junctions\nonly"]; retr = [0.871, np.mean([0.141, 0.145, 0.320]), 0.859, 0.078]; trans = [np.nan, np.mean([0.023, 0.055, 0.047]), 0.914, 0.125]
 xx = np.arange(4); w = 0.38

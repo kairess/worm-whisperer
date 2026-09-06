@@ -109,7 +109,7 @@ runs/            산출물, git 제외
 | 문서 | 내용 |
 |------|------|
 | [docs/PLAN_WORMGYM.md](docs/PLAN_WORMGYM.md) | Worm Gym: 사전 등록 가설 H1–H5-9, 판정 전부, 기전, 문헌 대조 |
-| [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | 논문 주장·그림·투고 전 실험 E1–E5 |
+| [docs/PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | 논문 주장·그림·사전 등록 근거 실험 E1–E9 (판정, 95 % CI) |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | ADR-001 … ADR-017 |
 | [docs/RESULTS_PHASE1.md](docs/RESULTS_PHASE1.md) | JAX 재구현, 신호전파 아틀라스, 억제(부정 결과) |
 | [docs/RESULTS_PHASE2.md](docs/RESULTS_PHASE2.md) | 신체 결합, 진동자 탐색(부정 결과) |
@@ -125,4 +125,4 @@ runs/            산출물, git 제외
 
 ## 상태
 
-1부 2026-09-03 마감; Worm Gym 과 미로 항법 2026-09-03…06. 투고 전 실험 E1–E5(교차점 기전, 시드 반복, 폭 민감도, 문헌 대조, 배선 뒤섞기 대조군)를 마쳤다 (`docs/PAPER_OUTLINE.md` 3·6절). Claude Code 와 함께 개발했고 세션 원본은 `history/`.
+1부 2026-09-03 마감; Worm Gym 과 미로 항법 2026-09-03…06. 사전 등록 근거 실험 E1–E9 완료(교차점 기전, 규칙·핵심 도달률의 시드 반복, 폭 민감도, 문헌 대조, 배선 뒤섞기 대조군과 화학/갭정션 층 해리, 적분 스텝 재확인, 에피소드 단위 통계); `docs/PAPER_OUTLINE.md` §3·§6·§7 참고.md` 3·6절). Claude Code 와 함께 개발했고 세션 원본은 `history/`.
