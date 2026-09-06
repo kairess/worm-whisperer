@@ -1,6 +1,6 @@
 # What an atlas-fitted connectome can and cannot do: evolutionary search over interneuron stimulation in a whole-body *C. elegans* model
 
-Draft v2, 2026-09-07. PLOS Computational Biology research-article format. Every number is taken from `docs/PAPER_OUTLINE.md` and `docs/PLAN_WORMGYM.md`, where the producing file is named. Hypothesis identifiers (H1, H5-3, …) and evidence-experiment identifiers (E1–E9) refer to Table 1 and to the pre-registration records in the repository. Five training seeds (E6, E6c) are included.
+Draft v3, 2026-09-07. PLOS Computational Biology research-article format. Every number is taken from `docs/PAPER_OUTLINE.md` and `docs/PLAN_WORMGYM.md`, where the producing file is named. Hypothesis identifiers (H1, H5-3, …) and evidence-experiment identifiers (E1–E9) refer to Table 1 and to the pre-registration records in the repository. Five training seeds (E6, E6c) are included.
 
 ---
 
