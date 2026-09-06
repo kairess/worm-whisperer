@@ -27,14 +27,14 @@ ax[1].barh(list(retr), list(retr.values()), color=["#4c72b0", "#c44e52", "#dd845
 fig.tight_layout(); fig.savefig(f"{OUT}/fig3_minimal_circuit.png", dpi=160); plt.close(fig)
 # ---- fig4: maze paths from recorded scenes
 scenes = [("corridor_L", "L-corridor, open-field policy"), ("tmaze_left_goal", "T-maze, food left"), ("tmaze_right_goal", "T-maze, food right"), ("corridor_R_dorsal", "right corridor, dorsal-bend rule")]
-fig, axes = plt.subplots(1, 4, figsize=(14, 3.6))
+fig, axes = plt.subplots(1, 4, figsize=(14, 4.2))
 for ax, (sid, title) in zip(axes, scenes):
     d = J(f"docs/assets/scenes/{sid}.json"); F = d["frames"]
     for w in d["walls"]: ax.plot([w[0], w[2]], [w[1], w[3]], color="#444", lw=1)
     H = np.array([f["body"][0] for f in F]); om = np.array([f["omega"] for f in F])
     ax.plot(H[:, 0], H[:, 1], color="#4c72b0", lw=1); ax.scatter(H[om > 0, 0], H[om > 0, 1], s=6, color="#dd8452", label="dorsal bend"); ax.scatter(H[om < 0, 0], H[om < 0, 1], s=6, color="#c44e52", label="ventral bend")
-    ax.add_patch(plt.Circle(d["src"], d["reach_r"], fill=False, ls="--", color="#55a868")); ax.set_aspect("equal"); ax.set_title(f"{title}\nreached {d['reached']}, t = {F[-1]['t']:.0f} s", fontsize=9); ax.set_xticks([]); ax.set_yticks([])
-axes[0].legend(frameon=False, fontsize=7, loc="upper left"); fig.tight_layout(); fig.savefig(f"{OUT}/fig4_mazes.png", dpi=160); plt.close(fig)
+    ax.add_patch(plt.Circle(d["src"], d["reach_r"], fill=False, ls="--", color="#55a868")); ax.set_aspect("equal"); ax.set_title(f"{title}\nreached {d['reached']}, t = {F[-1]['t']:.0f} s", fontsize=9, pad=6); ax.set_xticks([]); ax.set_yticks([])
+axes[0].legend(frameon=False, fontsize=7, loc="upper left"); fig.tight_layout(rect=(0, 0, 1, 0.92)); fig.savefig(f"{OUT}/fig4_mazes.png", dpi=160); plt.close(fig)
 # ---- fig5: bend direction = turn direction
 rows = [("ventral-only bends (ADR-016)", 64, 0, 1.00, 0.00), ("dorsal swap (DOMEGA, control)", 33, 31, None, None), ("SMDD/SMDV-directed bends, right-trained (ADR-017)", None, None, 0.00, 1.00)]
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
