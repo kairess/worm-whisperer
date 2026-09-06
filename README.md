@@ -18,7 +18,7 @@ Every hypothesis was pre-registered with its judgement criterion before training
 
 | Question | Verdict | Key number |
 |---|---|---|
-| Can the wiring do chemotaxis when only command/steering interneurons (AVB, AVA, SMDD, SMDV, RIV) are stimulated? | ✓ (2 of 3 seeds) | reach 0.914 within 40 s at 2.5 mm; random 0.04. Seeds 0/1/2: 0.914 / 0.973 / 0.301 (mean 0.73 ± 0.37); the third seed learned the reversal rule but never used the deep bend |
+| Can the wiring do chemotaxis when only command/steering interneurons (AVB, AVA, SMDD, SMDV, RIV) are stimulated? | ✓ (4 of 5 seeds) | reach 0.914 within 40 s at 2.5 mm; random 0.04. Seeds 0–4: 0.914 / 0.973 / 0.301 / 0.969 / 0.934 (mean 0.82 ± 0.29); seed 2 learned the reversal rule but never used the deep bend |
 | … when only sensory neurons (ASE, AWC, AWA, ASK, ASH, PLM, ALM, AVM) are stimulated? | ✗ | 0.109 ≈ chance 0.125 — the sensory→command step is silent in this model (also with static stimulation) |
 | Does learning rediscover the pirouette rule? | ✓ (rule) / △ (sufficiency) | falling C → reverse + omega, rising → run (ρ = −1.00 in 2 of 3 seeds); reversal-onset rate falls monotonically with dC/dt as in Pierce-Shimomura 1999. Reversal + omega alone: 2 seeds fail (0.05–0.11), 1 seed finds a bend-always strategy that reaches 0.328 at 2.5 mm (full circuit 0.914) |
 | What is the minimal circuit? | | reversal (AVA) + deep bend (RIV) + steering (SMD): ablating any one drops the trained policy to 0.07–0.27; retraining without RIV fails (0.19), without SMD reaches at most 0.33 |
