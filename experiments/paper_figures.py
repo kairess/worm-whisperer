@@ -3,7 +3,7 @@ fig2 H1 학습 곡선 + 정책 스윕 | fig3 최소 회로 절제 + 피루엣 �
 import os, sys, json, numpy as np; sys.path.insert(0, os.getcwd())
 import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-OUT = "docs/figures"; os.makedirs(OUT, exist_ok=True); plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False, "font.family": "serif", "font.serif": ["Times New Roman", "Nimbus Roman", "Liberation Serif", "DejaVu Serif"], "mathtext.fontset": "stix", "savefig.dpi": 300})
+OUT = "docs/figures"; os.makedirs(OUT, exist_ok=True); plt.rcParams.update({"font.size": 12, "axes.spines.top": False, "axes.spines.right": False, "font.family": "serif", "font.serif": ["Times New Roman", "Nimbus Roman", "Liberation Serif", "DejaVu Serif"], "mathtext.fontset": "stix", "savefig.dpi": 300})
 def J(p): return json.load(open(p))
 # ---- fig2: H1 learning curves + policy sweep
 fig, ax = plt.subplots(1, 3, figsize=(11, 3.3))
@@ -15,7 +15,7 @@ sw = J("runs/wormgym/es_cmd_curr/analysis.json")["summary"].get("policy_sweep", 
 if sw:
     ds = sorted(float(k) for k in sw); ch = ["AVB", "AVA", "SMDD", "SMDV", "RIV"]
     for c in ch: ax[1].plot(ds, [sw[str(d) if str(d) in sw else k][c] for d, k in zip(ds, sorted(sw, key=float))], marker="o", ms=3, label=c)
-    ax[1].axvline(0, color="#999", lw=0.8); ax[1].set_xlabel("10·Δlog C per 0.5 s (falling ← → rising)"); ax[1].set_ylabel("stimulus (fraction of 6 pA)"); ax[1].legend(frameon=False, ncol=2, fontsize=8); ax[1].set_title("B  learned policy: input → stimulation")
+    ax[1].axvline(0, color="#999", lw=0.8); ax[1].set_xlabel("10·Δlog C per 0.5 s (falling ← → rising)"); ax[1].set_ylabel("stimulus (fraction of 6 pA)"); ax[1].legend(frameon=False, ncol=2, fontsize=11); ax[1].set_title("B  learned policy: input → stimulation")
 pr = J("runs/wormgym/es_cmd_curr/pirouette_rate.json"); ax[2].bar(range(1, 6), pr["rates"], color="#4c72b0"); ax[2].axhline(pr["baseline"], color="#999", ls="--", lw=0.8)
 ax[2].set_xlabel("dlogC/dt quintile (1 = falling)"); ax[2].set_ylabel("reversal onset rate (/s)"); ax[2].set_title("C  reversal onsets vs dC/dt (cf. Pierce-Shimomura 1999)")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig2_learning_and_rule.png", dpi=300); plt.close(fig)
@@ -34,8 +34,8 @@ for ax, (sid, title) in zip(axes, scenes):
     for w in d["walls"]: ax.plot([w[0], w[2]], [w[1], w[3]], color="#444", lw=1)
     H = np.array([f["body"][0] for f in F]); om = np.array([f["omega"] for f in F])
     ax.plot(H[:, 0], H[:, 1], color="#4c72b0", lw=1); ax.scatter(H[om > 0, 0], H[om > 0, 1], s=6, color="#dd8452", label="dorsal bend"); ax.scatter(H[om < 0, 0], H[om < 0, 1], s=6, color="#c44e52", label="ventral bend")
-    ax.add_patch(plt.Circle(d["src"], d["reach_r"], fill=False, ls="--", color="#55a868")); ax.set_aspect("equal"); ax.set_title(f"{title}\nreached {d['reached']}, t = {F[-1]['t']:.0f} s", fontsize=9, pad=6); ax.set_xticks([]); ax.set_yticks([])
-axes[0].legend(frameon=False, fontsize=7, loc="upper left"); fig.tight_layout(rect=(0, 0, 1, 0.92)); fig.savefig(f"{OUT}/fig4_mazes.png", dpi=300); plt.close(fig)
+    ax.add_patch(plt.Circle(d["src"], d["reach_r"], fill=False, ls="--", color="#55a868")); ax.set_aspect("equal"); ax.set_title(f"{title}\nreached {d['reached']}, t = {F[-1]['t']:.0f} s", fontsize=12, pad=6); ax.set_xticks([]); ax.set_yticks([])
+axes[0].legend(frameon=False, fontsize=10, loc="upper left"); fig.tight_layout(rect=(0, 0, 1, 0.92)); fig.savefig(f"{OUT}/fig4_mazes.png", dpi=300); plt.close(fig)
 # ---- fig5: bend direction = turn direction
 rows = [("ventral-only bends (ADR-016)", 64, 0, 1.00, 0.00), ("dorsal swap (DOMEGA, control)", 33, 31, None, None), ("SMDD/SMDV-directed bends, right-trained (ADR-017)", None, None, 0.00, 1.00)]
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
@@ -46,8 +46,8 @@ series = [("ventral-only policy, left corridor", [1, 1, 1], "#c44e52", "//"), ("
           ("dorsal-trained policy, right corridor", [1, 1, 1], "#dd8452", "//"), ("dorsal-trained policy, left corridor", [0, 0, 0], "#dd8452", "")]
 for k, (lab, v, col, hatch) in enumerate(series):
     ax[1].bar(xx + (k - 1.5) * bw, v, bw, color=col, hatch=hatch, edgecolor="k", linewidth=0.5, label=lab)
-    for x, y in zip(xx + (k - 1.5) * bw, v): ax[1].text(x, y + 0.02, f"{y:.2f}", ha="center", va="bottom", fontsize=6)
-ax[1].set_xticks(xx); ax[1].set_xticklabels([f"{x:.2f}" for x in w]); ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate (n=32)"); ax[1].set_ylim(0, 1.3); ax[1].legend(frameon=False, fontsize=6.5, ncol=2, loc="upper center"); ax[1].set_title("B  handedness is robust to corridor width")
+    for x, y in zip(xx + (k - 1.5) * bw, v): ax[1].text(x, y + 0.02, f"{y:.2f}", ha="center", va="bottom", fontsize=9)
+ax[1].set_xticks(xx); ax[1].set_xticklabels([f"{x:.2f}" for x in w]); ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate (n=32)"); ax[1].set_ylim(0, 1.3); ax[1].legend(frameon=False, fontsize=9.5, ncol=2, loc="upper center"); ax[1].set_title("B  handedness is robust to corridor width")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig5_bend_direction.png", dpi=300); plt.close(fig)
 # ---- fig6: lateral info + wiring control
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
@@ -57,7 +57,7 @@ labels = ["real\nwiring", "all\nshuffled", "chemical\nonly", "gap junctions\nonl
 xx = np.arange(4); w = 0.38
 ax[1].bar(xx - w / 2, retr, w, color="#4c72b0", label="retrained"); ax[1].bar(xx + w / 2, trans, w, color="#dd8452", label="real-wiring policy transferred")
 ax[1].scatter([1 - w / 2] * 3, [0.141, 0.145, 0.320], color="k", s=10, zorder=3); ax[1].scatter([1 + w / 2] * 3, [0.023, 0.055, 0.047], color="k", s=10, zorder=3)
-ax[1].set_xticks(xx); ax[1].set_xticklabels(labels, fontsize=8); ax[1].set_ylim(0, 1.25); ax[1].legend(frameon=False, fontsize=7, loc="upper left", ncol=2); ax[1].set_ylabel("reach rate (2.5 mm, n=256)"); ax[1].set_title("B  wiring shuffles: gap junctions carry the stimulus")
+ax[1].set_xticks(xx); ax[1].set_xticklabels(labels, fontsize=11); ax[1].set_ylim(0, 1.25); ax[1].legend(frameon=False, fontsize=10, loc="upper left", ncol=2); ax[1].set_ylabel("reach rate (2.5 mm, n=256)"); ax[1].set_title("B  wiring shuffles: gap junctions carry the stimulus")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig6_lateral_and_wiring.png", dpi=300); plt.close(fig)
 print("figures written:", sorted(os.listdir(OUT)))
 
@@ -72,10 +72,10 @@ boxes = [("Observation", "log odour change\n(0.5-2 s history)\nwall touch L / R 
          ("Body + world", "2D viscoelastic rod\non agar, wall contact\nodour field, mazes", "#fde8e8")]
 for x, (title, body, col) in zip(xs, boxes):
     ax.add_patch(FancyBboxPatch((x, 0.55), W, 2.35, boxstyle="round,pad=0.04", fc=col, ec="#555", lw=1.0))
-    ax.text(x + W / 2, 2.62, title, ha="center", va="center", fontsize=9.5, fontweight="bold"); ax.text(x + W / 2, 1.55, body, ha="center", va="center", fontsize=7.8)
+    ax.text(x + W / 2, 2.62, title, ha="center", va="center", fontsize=12.5, fontweight="bold"); ax.text(x + W / 2, 1.55, body, ha="center", va="center", fontsize=10.8)
 for x in xs[:-1]: ax.add_patch(FancyArrowPatch((x + W + 0.03, 1.7), (x + W + 0.19, 1.7), arrowstyle="-|>", mutation_scale=18, color="#222", lw=1.6, shrinkA=0, shrinkB=0))
 ax.add_patch(FancyArrowPatch((xs[-1] + W / 2, 0.5), (xs[0] + W / 2, 0.5), arrowstyle="-|>", mutation_scale=18, color="#555", lw=1.4, connectionstyle="arc3,rad=-0.18"))
-ax.text(6.3, -0.55, "next observation every 0.5 s: odour at the nose, wall contact", ha="center", fontsize=8.5, color="#444")
-ax.text(6.2, 3.3, "Whitelist principle: the agent never touches motor neurons or muscles; the sensory-to-command step is left to the wiring", ha="center", fontsize=9.5, fontweight="bold")
+ax.text(6.3, -0.55, "next observation every 0.5 s: odour at the nose, wall contact", ha="center", fontsize=11.5, color="#444")
+ax.text(6.2, 3.3, "Whitelist principle: the agent never touches motor neurons or muscles; the sensory-to-command step is left to the wiring", ha="center", fontsize=12.5, fontweight="bold")
 fig.savefig(f"{OUT}/fig1_pipeline.png", dpi=300, bbox_inches="tight", pad_inches=0.15); plt.close(fig)
 print("figures written:", sorted(f for f in os.listdir(OUT) if f.endswith(".png")))
