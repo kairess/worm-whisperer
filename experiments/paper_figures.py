@@ -1,6 +1,7 @@
 """논문 그림 초안 (기존 산출물만 사용). docs/figures/fig2–fig6.png.
 fig2 H1 학습 곡선 + 정책 스윕 | fig3 최소 회로 절제 + 피루엣 규칙 | fig4 미로 궤적(녹화 장면) | fig5 굽힘 방향 = 회전 방향 (스왑·규칙·폭) | fig6 좌우 정보와 굽힘 방향 선택 + 배선 대조군"""
 import os, sys, json, numpy as np; sys.path.insert(0, os.getcwd())
+import numpy as np
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 OUT = "docs/figures"; os.makedirs(OUT, exist_ok=True); plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
 def J(p): return json.load(open(p))
@@ -45,7 +46,12 @@ ax[1].set_xlabel("corridor width (mm)"); ax[1].set_ylabel("reach rate"); ax[1].s
 fig.tight_layout(); fig.savefig(f"{OUT}/fig5_bend_direction.png", dpi=160); plt.close(fig)
 # ---- fig6: lateral info + wiring control
 fig, ax = plt.subplots(1, 2, figsize=(10, 3.2))
-ax[0].bar(["temporal only\n(ADR-017)", "temporal + lateral\ndifference"], [0.62, 0.73], color=["#999", "#4c72b0"]); ax[0].axhline(0.5, color="#c44e52", ls="--", lw=0.8); ax[0].set_ylim(0.4, 0.8); ax[0].set_ylabel("P(bend side = source side)"); ax[0].set_title("A  lateral information selects the bend side")
-ax[1].bar(["real wiring", "shuffled wiring\n(retrained)", "shuffled wiring\n(transferred policy)"], [0.871, 0.141, 0.023], color=["#4c72b0", "#c44e52", "#c44e52"]); ax[1].set_ylabel("reach rate (2.5 mm, n=256)"); ax[1].set_title("B  the wiring matters even for direct command stimulation")
+ax[0].bar(["temporal only\n(ADR-017)", "temporal + lateral\ndifference"], [0.61, 0.73], yerr=[0.18, 0.08], capsize=4, color=["#999", "#4c72b0"])   # E9 episode means ± sd (128 episodes); ax[0].axhline(0.5, color="#c44e52", ls="--", lw=0.8); ax[0].set_ylim(0.4, 0.8); ax[0].set_ylabel("P(bend side = source side)"); ax[0].set_title("A  lateral information selects the bend side")
+# E5/E7 (paper/*_far/eval*.txt): retrained / transferred reach; full shuffle = 3 seeds (0.141, 0.145, 0.320 / 0.023, 0.055, 0.047)
+labels = ["real\nwiring", "all\nshuffled", "chemical\nonly", "gap junctions\nonly"]; retr = [0.871, np.mean([0.141, 0.145, 0.320]), 0.859, 0.078]; trans = [np.nan, np.mean([0.023, 0.055, 0.047]), 0.914, 0.125]
+xx = np.arange(4); w = 0.38
+ax[1].bar(xx - w / 2, retr, w, color="#4c72b0", label="retrained"); ax[1].bar(xx + w / 2, trans, w, color="#dd8452", label="real-wiring policy transferred")
+ax[1].scatter([1 - w / 2] * 3, [0.141, 0.145, 0.320], color="k", s=10, zorder=3); ax[1].scatter([1 + w / 2] * 3, [0.023, 0.055, 0.047], color="k", s=10, zorder=3)
+ax[1].set_xticks(xx); ax[1].set_xticklabels(labels, fontsize=8); ax[1].set_ylim(0, 1.25); ax[1].legend(frameon=False, fontsize=7, loc="upper left", ncol=2); ax[1].set_ylabel("reach rate (2.5 mm, n=256)"); ax[1].set_title("B  wiring shuffles: gap junctions carry the stimulus")
 fig.tight_layout(); fig.savefig(f"{OUT}/fig6_lateral_and_wiring.png", dpi=160); plt.close(fig)
 print("figures written:", sorted(os.listdir(OUT)))
