@@ -1,6 +1,6 @@
 """GitHub Pages 데모용 녹화: 시뮬레이터 롤아웃(50 ms 블록)에서 몸 좌표·뉴런 판독 ΔV·게이트·행동·펄스 부호를 JSON 으로 내보낸다 (docs/assets/scenes/*.json).
 페이지는 시뮬레이션을 돌리지 않고 이 녹화를 재생한다."""
-import os, sys, json, numpy as np; sys.path.insert(0, os.getcwd()); os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
+import os, sys, sys, json, numpy as np; sys.path.insert(0, os.getcwd()); os.environ.setdefault("XLA_PYTHON_CLIENT_PREALLOCATE", "false")
 from worm.env.batch import BatchWormEnv, fit_theta
 from worm.env.mazes import MAZES
 CH = ["AVB", "AVA", "SMDD", "SMDV", "RIV"]
@@ -13,6 +13,8 @@ SCENES = [
          note="Corner turning = stall → reversal → forward with a deep ventral bend pressed against the wall. Reach 1.00."),
     dict(id="corridor_R_dorsal", title="Right-turn corridor: learnable only with dorsal deep bends (ADR-017)", policy="runs/wormgym/h5/smddir/corridor_R/theta_final.npy", maze="corridor_R", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=90.0,
          note="With ventral-only bends every policy scored 0/32 here. Under the SMDD/SMDV-directed bend rule the agent learns the right corner (reach 1.00)."),
+    dict(id="grid_best", title="3x3 grid maze: two left and two right turns (best individual, fixed start)", policy="runs/wormgym/h5/grid_fromR/best.npy", maze="grid", seeds=[50000], kw=dict(omega_smd_dir=True), episode_s=150.0,
+         note="The only policy that solved the grid: a single best individual from training that started from the right-corridor policy. It reaches the goal from this fixed start (1.00) but only 0.05 of the time when the start is jittered by 0.1 mm / 10 degrees, so it is an open-loop sequence rather than a robust strategy. Shown as an existence proof of a two-handed repertoire (left turns via ventral bends, right turns via dorsal bends)."),
     dict(id="open_field", title="Open-field chemotaxis (lateral-sensing policy)", policy="runs/wormgym/h5/lateral/flat/theta_final.npy", maze=None, seeds=[95003], kw=dict(omega_smd_dir=True, lateral_obs=True), episode_s=40.0,
          note="Whitelisted stimulation of AVB/AVA/SMDD/SMDV/RIV only. Reach 0.988 over 256 random starts, median 16.5 s."),
 ]
@@ -36,5 +38,7 @@ def export(sc):
     data = {"id": sc["id"], "title": sc["title"], "note": sc["note"], "channels": CH, "readouts": ["AVB", "AVA", "SMDD", "SMDV", "RIV", "RIS"], "block_s": 0.05, "action_s": 0.5,
             "walls": (mz["walls"].tolist() if mz else []), "src": np.round(out["src"][b], 3).tolist(), "sigma": env.sigma, "reach_r": env.reach_r, "reached": bool(out["reached"][b]), "frames": frames}
     fn = f"docs/assets/scenes/{sc['id']}.json"; json.dump(data, open(fn, "w"), separators=(",", ":")); print(sc["id"], "frames", len(frames), "reached", data["reached"], f"{os.path.getsize(fn)/1e6:.1f} MB", flush=True)
-for sc in SCENES: export(sc)
+only = set(sys.argv[1:])
+for sc in SCENES:
+    if not only or sc["id"] in only: export(sc)
 json.dump([{"id": s["id"], "title": s["title"]} for s in SCENES], open("docs/assets/scenes/index.json", "w"))
