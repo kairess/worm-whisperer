@@ -121,6 +121,10 @@ runs/            outputs, not in git
 - Boyle, Berri & Cohen 2012 (motor layer). Chalfie et al. 1985; Gray, Hill & Bargmann 2005; Turek et al. 2016 (protocols).
 - Pierce-Shimomura, Morse & Lockery 1999 (pirouettes). Gourgou et al. 2021, iScience (T-maze). *Neural sequences underlying directed turning in C. elegans*, Nature Neurosci. 2026 (dorsal/ventral turn control). Park et al. 2008, PLoS ONE (locomotion in structured environments).
 
+## License
+
+Code, models and data: PolyForm Noncommercial 1.0.0 (noncommercial use, modification and redistribution allowed; commercial use requires permission). Manuscript and documentation: CC BY-NC 4.0. See [LICENSE](LICENSE); third-party components (OpenWorm c302, MIT) keep their own licenses.
+
 ## Status
 
 Part 1 closed 2026-09-03; Worm Gym and maze navigation 2026-09-03…06. Pre-registered evidence experiments E1–E9 are complete (junction mechanism, seed replication of the rule and of the headline reach rate, width sensitivity, literature comparison, wiring-shuffle controls including the chemical/gap-junction layer dissociation, integration-step re-check, episode-level statistics); see `docs/PAPER_OUTLINE.md` §3, §6 and §7. Developed with Claude Code; session transcripts in `history/`.

@@ -124,6 +124,10 @@ runs/            산출물, git 제외
 - Boyle, Berri & Cohen 2012 (운동층). Chalfie 1985; Gray, Hill & Bargmann 2005; Turek 2016 (프로토콜).
 - Pierce-Shimomura, Morse & Lockery 1999 (피루엣). Gourgou et al. 2021, iScience (T-미로). *Neural sequences underlying directed turning in C. elegans*, Nature Neurosci 2026 (등/배 회전 제어). Park et al. 2008, PLoS ONE (구조 환경 보행).
 
+## 라이선스
+
+코드·모델·데이터: PolyForm Noncommercial 1.0.0 (비상업적 사용·수정·재배포 허용, 상업적 사용은 허락 필요). 논문·문서: CC BY-NC 4.0. 자세한 내용은 [LICENSE](LICENSE); 제3자 구성요소(OpenWorm c302, MIT)는 각자의 라이선스를 따릅니다.
+
 ## 상태
 
 1부 2026-09-03 마감; Worm Gym 과 미로 항법 2026-09-03…06. 사전 등록 근거 실험 E1–E9 완료(교차점 기전, 규칙·핵심 도달률의 시드 반복, 폭 민감도, 문헌 대조, 배선 뒤섞기 대조군과 화학/갭정션 층 해리, 적분 스텝 재확인, 에피소드 단위 통계); `docs/PAPER_OUTLINE.md` §3·§6·§7 참고.md` 3·6절). Claude Code 와 함께 개발했고 세션 원본은 `history/`.
