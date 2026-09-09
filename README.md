@@ -1,5 +1,7 @@
 # worm-whisperer
 
+**Paper (preprint):** Lee T. *What an atlas-fitted connectome can and cannot do: evolutionary search over interneuron stimulation in a whole-body C. elegans model.* 2026. [https://doi.org/10.64898/2026.09.06.749731](https://doi.org/10.64898/2026.09.06.749731)
+
 **What a fixed connectome can and cannot do** — a whole-body *C. elegans* simulator in which a learning agent may stimulate only a whitelist of interneurons. The 302-neuron wiring, the motor layer and the body do the rest.
 
 ![T-maze, food on the right: the worm enters the left arm first, reverses when the odour fades, and reaches the food (recorded simulation)](docs/assets/tmaze_right.gif)

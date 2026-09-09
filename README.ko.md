@@ -1,5 +1,7 @@
 # worm-whisperer
 
+**논문(프리프린트):** Lee T. *What an atlas-fitted connectome can and cannot do: evolutionary search over interneuron stimulation in a whole-body C. elegans model.* 2026. [https://doi.org/10.64898/2026.09.06.749731](https://doi.org/10.64898/2026.09.06.749731)
+
 **고정된 커넥톰으로 무엇이 되고 안 되는가** — 학습 에이전트가 화이트리스트 개재뉴런만 자극할 수 있는 전신 *C. elegans* 시뮬레이터. 302뉴런 배선, 운동층, 몸이 나머지를 만든다.
 
 ![T-미로, 먹이가 오른쪽: 왼쪽 팔에 먼저 들어갔다가 냄새가 옅어지면 후진해 먹이에 도달 (시뮬레이션 녹화)](docs/assets/tmaze_right.gif)
