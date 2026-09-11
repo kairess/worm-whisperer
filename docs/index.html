@@ -26,11 +26,13 @@
   .card { background:var(--panel); border:1px solid #1e2a38; border-radius:14px; padding:16px } .card h3 { margin:0 0 6px; font-size:16px } .card p { margin:0; color:var(--muted); font-size:14px }
   .card .num { font-size:26px; font-weight:700; color:var(--ink); letter-spacing:-.01em } .fine { color:var(--muted); font-size:13px; margin-top:26px }
   .principle { border-left:3px solid var(--accent); padding:6px 12px; color:var(--muted); margin:14px 0 } .principle b { color:var(--ink) }
+  .links { font-size:14px; color:var(--muted); margin:10px 0 0 } .links a { margin-right:14px }
 </style>
 </head>
 <body>
 <header>
   <h1>worm-whisperer <small>Grounding behaviour in a fixed <i>C. elegans</i> connectome: a learning agent may stimulate only a whitelist of interneurons — the wiring, the motor layer and the body do the rest.</small></h1>
+  <div class="links"><a href="https://doi.org/10.64898/2026.09.06.749731">Preprint (bioRxiv)</a><a href="https://github.com/kairess/worm-whisperer">Source code (GitHub)</a></div>
   <div class="principle"><b>Principle.</b> The connectome (which neurons connect, and how many synapses) is never modified. The agent cannot touch motor neurons or muscles. Everything below is a <b>recording</b> from the simulator (302-neuron c302 model in JAX + Boyle 2012 motor layer + 2D body on agar), replayed at 20 frames per simulated second.</div>
 </header>
 <div class="wrap">
